@@ -37,28 +37,28 @@ func main() {
 
 		msg, _ := ctx.GetPostForm("message")
 
-		messages := makeMessages(msg)
+		actionInfo := &domains.ActionInfo{
+			Message: &domains.Message{
+				Role:    "user",
+				Content: msg,
+			},
+			Result: &domains.ActionResult{
+				Result: "",
+				Type:   domains.ActionResultText,
+			},
+		}
 
-		answer, err := chat.Chat(ctx, messages)
+		action := domains.NewMessageAction(chat)
+		answer, err := action.Handle(ctx, actionInfo)
 		if err != nil {
 			logrus.Errorf("ChatGPT: chat error: %v", err)
 		}
 
-		logrus.Debugf("ChatGPT: chat: message=%s answer: %s", msg, answer.Content)
+		logrus.Debugf("ChatGPT: chat: message=%s answer: %s", msg, answer.Result)
 
-		result := escape.String(answer.Content)
+		result := escape.String(answer.Result)
 		ctx.String(http.StatusOK, result)
 	})
 
 	logrus.Fatal(r.Run(port))
-}
-
-func makeMessages(content string) []domains.Message {
-
-	return []domains.Message{
-		{
-			Role:    "user",
-			Content: content,
-		},
-	}
 }
