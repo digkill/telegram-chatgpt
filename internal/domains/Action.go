@@ -9,7 +9,6 @@ type ActionResultType string
 const (
 	ActionResultText     ActionResultType = "text"
 	ActionResultImageB64 ActionResultType = "image_b64"
-	ActionResultHelpCard ActionResultType = "help_card"
 )
 
 type ActionResult struct {
