@@ -18,6 +18,7 @@ type Wrapper struct {
 
 func (wrapper *Wrapper) GetInstance(token string) (*Telegram, error) {
 	t, ok := wrapper.listOfTelegrams.Load(token)
+
 	if ok {
 		return t.(*Telegram), nil
 	}
@@ -29,9 +30,8 @@ func (wrapper *Wrapper) GetInstance(token string) (*Telegram, error) {
 		}
 
 		bot.Debug = wrapper.debug
-
 		logrus.Debugf("Authorized on account %s", bot.Self.UserName)
-		wrapper.listOfTelegrams.Store(token, Telegram{bot})
+		wrapper.listOfTelegrams.Store(token, &Telegram{bot})
 	}
 
 	t, ok = wrapper.listOfTelegrams.Load(token)
@@ -43,7 +43,6 @@ func (wrapper *Wrapper) GetInstance(token string) (*Telegram, error) {
 }
 
 func NewTelegram(isDebug bool) (*Wrapper, error) {
-
 	return &Wrapper{
 		debug: isDebug,
 	}, nil

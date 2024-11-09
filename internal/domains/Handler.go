@@ -1,13 +1,15 @@
 package domains
 
 import (
+	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/digkill/telegram-chatgpt/internal/services/telegram"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
-	bot telegram.Telegram
+	bot    telegram.Telegram
+	Config *config.Config
 }
 
 func (handler *Handler) SendMessageTelegram(chatId int64, message string) error {
@@ -31,7 +33,7 @@ func (handler *Handler) SendMessageObjectTelegram(message tgbotapi.MessageConfig
 
 		_, err := handler.bot.Send(copyMessageObj)
 		if err != nil {
-			logrus.Errorf("There is an error in send message to user. [SendMessageObjectTelegram] Error: " + err.Error() + " Message: " + copyMessageObj.Text)
+			logrus.Errorf("There is an error in send message to user. [SendMessageObjectTelegram] Error: " + err.Error() + " Message.go: " + copyMessageObj.Text)
 			return err
 		}
 	}
