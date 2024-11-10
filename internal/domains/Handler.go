@@ -1,7 +1,9 @@
 package domains
 
 import (
+	"encoding/json"
 	"github.com/digkill/telegram-chatgpt/internal/config"
+	"github.com/digkill/telegram-chatgpt/internal/models"
 	"github.com/digkill/telegram-chatgpt/internal/services/telegram"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
@@ -39,6 +41,76 @@ func (handler *Handler) SendMessageObjectTelegram(message tgbotapi.MessageConfig
 	}
 
 	return nil
+}
+
+func (handler *Handler) SendMainMenu(chatId int64, message string, data models.Button) bool {
+	err := handler.SendMessageWithButtonsInRowToTelegram(
+		chatId,
+		message,
+		tgbotapi.NewInlineKeyboardButtonData("Меню", handler.buttonToString(data)),
+	)
+	if err == nil {
+		return true
+	}
+	return false
+}
+
+func (handler *Handler) SendListMenu(chatId int64, message string, data models.Button) bool {
+	data.Type = "chatGPT"
+	chatGPTButton := handler.buttonToString(data)
+	data.Type = "baton"
+	buttonButton := handler.buttonToString(data)
+	err := handler.SendMessageWithButtonsInRowsToTelegram(
+		chatId,
+		message,
+		tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("ChatGPT", chatGPTButton),
+				tgbotapi.NewInlineKeyboardButtonData("Кнопка", buttonButton),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonURL("Подробнее",
+					"https://mediarise.org"),
+			),
+		),
+	)
+	if err == nil {
+		return true
+	}
+	return false
+}
+
+func (handler *Handler) SendResultAndReturnMenu(chatId int64, message string, data models.Button) bool {
+	err := handler.SendMessageWithButtonsInRowToTelegram(
+		chatId,
+		message,
+		tgbotapi.NewInlineKeyboardButtonData("Вернуться в меню", handler.buttonToString(data)),
+	)
+	if err == nil {
+		return true
+	}
+	return false
+}
+
+func (handler *Handler) SendMessageWithButtonsInRowToTelegram(chatId int64, message string, buttons ...tgbotapi.InlineKeyboardButton) error {
+	return handler.SendMessageWithButtonsInRowsToTelegram(chatId, message, tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(buttons...),
+	))
+}
+
+func (handler *Handler) SendMessageWithButtonsInRowsToTelegram(chatId int64, message string, markup tgbotapi.InlineKeyboardMarkup) error {
+	msg := tgbotapi.NewMessage(chatId, message)
+	msg.ParseMode = tgbotapi.ModeHTML
+	msg.ReplyMarkup = &markup
+	return handler.SendMessageObjectTelegram(msg)
+}
+
+func (handler *Handler) buttonToString(data models.Button) string {
+	result, err := json.Marshal(data)
+	if err == nil {
+		return string(result)
+	}
+	return ""
 }
 
 func NewHandler(bot telegram.Telegram) *Handler {

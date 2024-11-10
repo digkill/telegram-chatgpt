@@ -12,6 +12,7 @@ func main() {
 		logrus.Warnf("load env failed: %v", err)
 	}
 	runTelegram()
+
 	/*var (
 		port = os.Getenv("HTTP_PORT")
 	)
@@ -24,8 +25,6 @@ func main() {
 	{
 		chat = newChat()
 	}
-
-
 
 		r := server.NewHTTPServer()
 		r.POST("/message", func(ctx *gin.Context) {

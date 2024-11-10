@@ -19,7 +19,7 @@ func NewMessageAction(chat Chat) *MessageAction {
 func (a MessageAction) Handle(ctx context.Context, actionInfo *ActionInfo) (res *ActionResult, err error) {
 
 	msg := actionInfo.GetText()
-	messages := makeMessages(msg)
+	messages := MakeMessages(msg)
 
 	answer, err := a.Chat.Chat(ctx, messages)
 	if err != nil {
@@ -37,7 +37,7 @@ func (a MessageAction) Handle(ctx context.Context, actionInfo *ActionInfo) (res 
 	return actionInfo.Result, nil
 }
 
-func makeMessages(content string) []Message {
+func MakeMessages(content string) []Message {
 
 	return []Message{
 		{
