@@ -58,15 +58,15 @@ func (handler *Handler) SendMainMenu(chatId int64, message string, data models.B
 func (handler *Handler) SendListMenu(chatId int64, message string, data models.Button) bool {
 	data.Type = "chatGPT"
 	chatGPTButton := handler.buttonToString(data)
-	data.Type = "baton"
-	buttonButton := handler.buttonToString(data)
+	//data.Type = "baton"
+	//buttonButton := handler.buttonToString(data)
 	err := handler.SendMessageWithButtonsInRowsToTelegram(
 		chatId,
 		message,
 		tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
 				tgbotapi.NewInlineKeyboardButtonData("ChatGPT", chatGPTButton),
-				tgbotapi.NewInlineKeyboardButtonData("Кнопка", buttonButton),
+				//	tgbotapi.NewInlineKeyboardButtonData("Кнопка", buttonButton),
 			),
 			tgbotapi.NewInlineKeyboardRow(
 				tgbotapi.NewInlineKeyboardButtonURL("Подробнее",

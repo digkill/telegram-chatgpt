@@ -2,14 +2,9 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/digkill/telegram-chatgpt/internal/domains"
 	"github.com/digkill/telegram-chatgpt/internal/models"
-	"github.com/digkill/telegram-chatgpt/internal/services/chatgpt"
-	"github.com/gin-gonic/gin"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
-	"os"
 	"regexp"
 )
 
@@ -29,22 +24,21 @@ type MainMenuHandler struct {
 
 func (i *MainMenuHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *CallBackContext) {
 
-	/*fmt.Println("MainMenuHandler.Handle")
-	fmt.Println(callbackQuery.Data)
-	fmt.Println("MainMenuHandler.Handle")
-	//if ctx.RequestData.Type == "show_main_menu" {
+	fmt.Println("🪭🪭🪭🪭🪭")
+	fmt.Println(ctx.Updater)
+	fmt.Println("🪭🪭🪭🪭🪭")
 
-	ctx.Updater.Handler.SendListMenu(
-		callbackQuery.Message.Chat.ID,
-		"Привет! Странник!!",
-		models.Button{
-			Type: "show_main_menu",
-		},
-	)
-	//	return
-	//} else {
-	i.Next.Handle(callbackQuery, ctx)
-	//	};;*/
+	if ctx.RequestData != nil && ctx.RequestData.Type == "chatGPT" {
+
+		ctx.Updater.Handler.SendListMenu(
+			callbackQuery.Message.Chat.ID,
+			"Привет! Странник!!",
+			models.Button{
+				Type: "show_main_menu",
+			},
+		)
+		return
+	}
 	i.Next.Handle(callbackQuery, ctx)
 }
 
@@ -56,51 +50,17 @@ func (i *ChatGPTHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *Call
 
 	matched, err := regexp.MatchString(`"chatGPT"`, callbackQuery.Data)
 	if err != nil {
-		fmt.Println("🤡🤡🤡🤡🤡🤡")
 		logrus.Error(err)
 	}
 
-	fmt.Println("🤡🤡🤡🤡🤡🤡")
-	fmt.Println(ctx.RequestData)
-	fmt.Println(callbackQuery.Data)
-	fmt.Println(matched)
-	fmt.Println("🤡🤡🤡🤡🤡🤡")
 	if matched {
 
-		var openAIToken = os.Getenv("CHATGPT_TOKEN")
-		var openAIURL = os.Getenv("CHATGPT_URL")
-
-		config := openai.DefaultConfig(openAIToken)
-		if openAIURL != "" {
-			config.BaseURL = openAIURL
-		}
-
-		openaiClient := openai.NewClientWithConfig(config)
-		chat := chatgpt.NewChatGPT(openaiClient)
-
-		actionInfo := domains.ActionInfo{
-			Message: &domains.Message{Role: "User", Content: "Привет лапуля!"},
-		}
-
-		msg := actionInfo.GetText()
-		messages := domains.MakeMessages(msg)
-
-		var contextGpt *gin.Context
-
-		answer, err := chat.Chat(contextGpt, messages)
-
-		if err != nil {
-			logrus.Error(err)
-		}
-
-		ctx.Updater.Handler.SendResultAndReturnMenu(
+		ctx.Updater.Handler.SendMessageTelegram(
 			callbackQuery.Message.Chat.ID,
-			answer.Content,
-			models.Button{
-				Type: "show_main_menu",
-			},
+			"Введите запрос:",
 		)
 		return
+
 	}
 
 	i.Next.Handle(callbackQuery, ctx)

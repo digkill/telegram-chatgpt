@@ -44,7 +44,7 @@ func (updater *UpdateTelegramData) Init() error {
 				},
 			}).Handle(update.CallbackQuery, &CallBackContext{
 				Updater: updater,
-				Payload: "paylaod",
+				Payload: "payload",
 			})
 		}
 
@@ -55,7 +55,7 @@ func (updater *UpdateTelegramData) Init() error {
 				},
 			}).Handle(update.Message, &MessageContext{
 				Updater: updater,
-				Payload: "paylaod",
+				Payload: "payload",
 			})
 		}
 
