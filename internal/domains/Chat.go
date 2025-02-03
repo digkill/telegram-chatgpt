@@ -2,9 +2,14 @@ package domains
 
 import "context"
 
+type Content struct {
+	Text  string
+	Image string
+}
+
 type Message struct {
 	Role    string
-	Content string
+	Content []Content
 }
 
 type Answer struct {

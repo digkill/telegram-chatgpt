@@ -35,6 +35,10 @@ func NewChatGPT(client *openai.Client, opts ...Option) *ChatGPT {
 	return chatGPT
 }
 
+func (c ChatGPT) GetChat() *openai.Client {
+	return c.client
+}
+
 func (c ChatGPT) Chat(ctx context.Context, messages []domains.Message) (*domains.Answer, error) {
 
 	fmt.Println("👙👙👙👙👙")

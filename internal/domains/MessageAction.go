@@ -37,7 +37,7 @@ func (a MessageAction) Handle(ctx context.Context, actionInfo *ActionInfo) (res 
 	return actionInfo.Result, nil
 }
 
-func MakeMessages(content string) []Message {
+func MakeMessages(content []Content) []Message {
 
 	return []Message{
 		{

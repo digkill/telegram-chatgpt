@@ -38,10 +38,12 @@ func (updater *UpdateTelegramData) Init() error {
 	for update := range updates {
 
 		if update.CallbackQuery != nil {
-			(&MainMenuHandler{
-				Next: &ChatGPTHandler{
-					Next: &FinishCallBackHandler{},
-				},
+			(
+			//&MainMenuHandler{
+			//Next:
+			&ChatGPTHandler{
+				Next: &FinishCallBackHandler{},
+				//	},
 			}).Handle(update.CallbackQuery, &CallBackContext{
 				Updater: updater,
 				Payload: "payload",

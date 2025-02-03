@@ -14,6 +14,10 @@ type Handler struct {
 	Config *config.Config
 }
 
+func (handler *Handler) GetBot() telegram.Telegram {
+	return handler.bot
+}
+
 func (handler *Handler) SendMessageTelegram(chatId int64, message string) error {
 	msg := tgbotapi.NewMessage(chatId, message)
 	msg.ParseMode = tgbotapi.ModeMarkdown
@@ -85,6 +89,17 @@ func (handler *Handler) SendResultAndReturnMenu(chatId int64, message string, da
 		chatId,
 		message,
 		tgbotapi.NewInlineKeyboardButtonData("Вернуться в меню", handler.buttonToString(data)),
+	)
+	if err == nil {
+		return true
+	}
+	return false
+}
+
+func (handler *Handler) SendResult(chatId int64, message string, data models.Button) bool {
+	err := handler.SendMessageTelegram(
+		chatId,
+		message,
 	)
 	if err == nil {
 		return true
