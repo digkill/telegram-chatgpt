@@ -2,14 +2,9 @@ package domains
 
 import "context"
 
-type Content struct {
-	Text  string
-	Image string
-}
-
 type Message struct {
-	Role    string
-	Content []Content
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type Answer struct {

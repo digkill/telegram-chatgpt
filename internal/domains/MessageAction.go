@@ -2,6 +2,7 @@ package domains
 
 import (
 	"context"
+	"fmt"
 	"github.com/ConnectAI-E/Feishu-EX-ChatGPT/pkg/escape"
 	"github.com/sirupsen/logrus"
 )
@@ -21,6 +22,8 @@ func (a MessageAction) Handle(ctx context.Context, actionInfo *ActionInfo) (res 
 	msg := actionInfo.GetText()
 	messages := MakeMessages(msg)
 
+	fmt.Println(messages)
+
 	answer, err := a.Chat.Chat(ctx, messages)
 	if err != nil {
 		logrus.Errorf("ChatGPT: chat error: %v", err)
@@ -37,7 +40,7 @@ func (a MessageAction) Handle(ctx context.Context, actionInfo *ActionInfo) (res 
 	return actionInfo.Result, nil
 }
 
-func MakeMessages(content []Content) []Message {
+func MakeMessages(content string) []Message {
 
 	return []Message{
 		{

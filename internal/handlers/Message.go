@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/digkill/telegram-chatgpt/internal/domains"
 	"github.com/digkill/telegram-chatgpt/internal/models"
 	"github.com/digkill/telegram-chatgpt/internal/services/chatgpt"
 	"github.com/gin-gonic/gin"
@@ -12,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 )
@@ -99,10 +99,6 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 				log.Fatal(err)
 			}
 
-			fmt.Println("🤓🤓🤓🤓🤓")
-			fmt.Println(image)
-			fmt.Println("🤓🤓🤓🤓🤓")
-
 			//	ctxs := context.Background()
 
 			//	bytes, err := openaiClient.CreateFileBytes(ctxs, openai.FileBytesRequest{
@@ -110,10 +106,6 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			//		Bytes:   []byte(image),
 			//		Purpose: openai.PurposeFineTune,
 			//	})
-
-			fmt.Println("🤓🤓🤓🤓🤓")
-			fmt.Println(err)
-			fmt.Println("🤓🤓🤓🤓🤓")
 
 			if err != nil {
 				return
@@ -127,35 +119,69 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 			// ChatMessageImageURL
 
-			message.Text = "Реши задачу по ссылке картинки " + urlImage
+			// Определяем структуры для JSON
+
+			imgUrl := openai.ChatMessageImageURL{
+				URL: image,
+			}
+
+			contentImg := openai.ChatMessagePart{
+				ImageURL: &imgUrl,
+				Type:     openai.ChatMessagePartTypeImageURL,
+			}
+
+			contentText := openai.ChatMessagePart{
+				Text:     "Реши задачу и результат приведи в формат HTML допустимы только теги <b>, <i>, <u>, <s>, <span>, <a>, <pre>, <code>, <blockquote>, другие HTML Теги использовать запрещено, приведи формулы в удобном виде с LaTeX, чтобы они были хорошо читаемыми,",
+				ImageURL: &imgUrl,
+				Type:     openai.ChatMessagePartTypeText,
+			}
+
+			// Создаём JSON-объект в виде структуры
+			data := []openai.ChatCompletionMessage{
+				{
+					Role:         "user",
+					MultiContent: []openai.ChatMessagePart{contentImg, contentText},
+				},
+			}
+
+			//jsonData, err := json.Marshal(data)
+
+			//	fmt.Println(string(jsonData))
+
+			if err != nil {
+				fmt.Println("Ошибка при кодировании в JSON:", err)
+				return
+			}
+
+			var contextGpt *gin.Context
+			contextGpt = &gin.Context{}
+
+			answer, err := chat.Chat(contextGpt, data)
+
+			if err != nil {
+				logrus.Error(err)
+			}
+
+			ctx.Updater.Handler.SendResult(
+				message.Chat.ID,
+				answer.Content,
+				models.Button{
+					Type: "show_main_menu",
+				},
+			)
+			return
+
 		} else {
 			fmt.Println("Нет доступных изображений")
 		}
 
-		actionInfo := domains.ActionInfo{
-			Message: &domains.Message{Role: "User", Content: message}
-		}
+		//	actionInfo := domains.ActionInfo{
+		//		Message: &domains.Message{Role: "User", Content: mm},
+		//	}
 
-		msg := actionInfo.GetText()
-		messages := domains.MakeMessages(msg)
+		// msg := actionInfo.GetText()
+		//	messages := domains.MakeMessages(msg)
 
-		var contextGpt *gin.Context
-		contextGpt = &gin.Context{}
-
-		answer, err := chat.Chat(contextGpt, messages)
-
-		if err != nil {
-			logrus.Error(err)
-		}
-
-		ctx.Updater.Handler.SendResult(
-			message.Chat.ID,
-			answer.Content,
-			models.Button{
-				Type: "show_main_menu",
-			},
-		)
-		return
 	}
 
 	h.Next.Handle(message, ctx)
@@ -189,7 +215,7 @@ func downloadFile(url string) (string, error) {
 	}
 
 	// Кодируем в Base64
-	base64String := base64.StdEncoding.EncodeToString(bodyBytes)
+	base64String, _ := EncodeImageToBase64(bodyBytes)
 
 	//bodyBytes = []byte(strings.ToValidUTF8(string(bodyBytes), ""))
 	//fmt.Println("!!!!")
@@ -220,4 +246,22 @@ func downloadFile(url string) (string, error) {
 	//	fmt.Println(jsonlData)
 
 	return base64String, nil
+}
+
+func EncodeImageToBase64(imageBytes []byte) (string, error) {
+
+	// Кодируем в base64
+	base64Str := base64.StdEncoding.EncodeToString(imageBytes)
+
+	// Определяем MIME-тип по расширению
+	//ext := filepath.Ext(filePath)
+	mimeType := mime.TypeByExtension(".jpg")
+	if mimeType == "" {
+		mimeType = "application/octet-stream" // По умолчанию, если неизвестный тип
+	}
+
+	// Формируем data URL
+	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64Str)
+
+	return dataURL, nil
 }

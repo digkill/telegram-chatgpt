@@ -39,15 +39,15 @@ func (c ChatGPT) GetChat() *openai.Client {
 	return c.client
 }
 
-func (c ChatGPT) Chat(ctx context.Context, messages []domains.Message) (*domains.Answer, error) {
+func (c ChatGPT) Chat(ctx context.Context, messages []openai.ChatCompletionMessage) (*domains.Answer, error) {
+
+	//chatGPTMessages := c.makeChatGPTMessage(messages)
 
 	fmt.Println("👙👙👙👙👙")
-	fmt.Println(ctx)
+	fmt.Println(messages)
 	fmt.Println("👙👙👙👙👙")
 
-	chatGPTMessages := c.makeChatGPTMessage(messages)
-
-	return c.send(ctx, chatGPTMessages)
+	return c.send(ctx, messages)
 }
 
 func (c ChatGPT) makeChatGPTMessage(messages []domains.Message) []openai.ChatCompletionMessage {
