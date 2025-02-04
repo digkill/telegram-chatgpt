@@ -20,7 +20,7 @@ func (handler *Handler) GetBot() telegram.Telegram {
 
 func (handler *Handler) SendMessageTelegram(chatId int64, message string) error {
 	msg := tgbotapi.NewMessage(chatId, message)
-	msg.ParseMode = tgbotapi.ModeHTML
+	msg.ParseMode = tgbotapi.ModeMarkdown
 
 	return handler.SendMessageObjectTelegram(msg)
 }

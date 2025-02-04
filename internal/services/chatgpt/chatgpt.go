@@ -3,7 +3,6 @@ package chatgpt
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/digkill/telegram-chatgpt/internal/domains"
 	"github.com/sashabaranov/go-openai"
 )
@@ -42,10 +41,6 @@ func (c ChatGPT) GetChat() *openai.Client {
 func (c ChatGPT) Chat(ctx context.Context, messages []openai.ChatCompletionMessage) (*domains.Answer, error) {
 
 	//chatGPTMessages := c.makeChatGPTMessage(messages)
-
-	fmt.Println("👙👙👙👙👙")
-	fmt.Println(messages)
-	fmt.Println("👙👙👙👙👙")
 
 	return c.send(ctx, messages)
 }

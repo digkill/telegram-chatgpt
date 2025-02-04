@@ -14,6 +14,7 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 type MessageContext struct {
@@ -47,6 +48,16 @@ type CommandMenuHandler struct {
 }
 
 func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageContext) {
+
+	if message.Command() == "author" {
+		ctx.Updater.Handler.SendResult(
+			message.Chat.ID,
+			"mediarise.ru",
+			models.Button{},
+		)
+		return
+	}
+
 	if message.Command() == "start" {
 
 		/*ctx.Updater.Handler.SendListMenu(
@@ -80,6 +91,69 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		openaiClient := openai.NewClientWithConfig(config)
 		chat := chatgpt.NewChatGPT(openaiClient)
 
+		voice := message.Voice
+
+		if voice != nil {
+
+			voiceId := voice.FileID
+			fileMimeType := mime.TypeByExtension(filepath.Ext(voice.MimeType))
+
+			fileId := tgbotapi.FileConfig{FileID: voiceId}
+
+			file, err := ctx.Updater.GetBot().GetFile(fileId)
+			if err != nil {
+				return
+			}
+
+			urlFile := file.Link(ctx.Updater.GetBot().Token)
+
+			audio, err := downloadFile(urlFile, fileMimeType)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			imgUrl := openai.ChatMessageImageURL{
+				URL: audio,
+			}
+
+			contentImg := openai.ChatMessagePart{
+				ImageURL: &imgUrl,
+				Type:     openai.ChatMessagePartTypeImageURL,
+			}
+
+			contentText := openai.ChatMessagePart{
+				Text: "Не используй нотацию LaTeX, используй математические символы",
+				Type: openai.ChatMessagePartTypeText,
+			}
+
+			// Создаём JSON-объект в виде структуры
+			data := []openai.ChatCompletionMessage{
+				{
+					Role:         "user",
+					MultiContent: []openai.ChatMessagePart{contentImg, contentText},
+				},
+			}
+
+			var contextGpt *gin.Context
+			contextGpt = &gin.Context{}
+
+			answer, err := chat.Chat(contextGpt, data)
+
+			if err != nil {
+				logrus.Error(err)
+			}
+
+			ctx.Updater.Handler.SendResult(
+				message.Chat.ID,
+				answer.Content,
+				models.Button{
+					Type: "show_main_menu",
+				},
+			)
+			return
+
+		}
+
 		images := message.Photo
 
 		if images != nil && len(*images) > 0 {
@@ -94,32 +168,12 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 			urlImage := file.Link(ctx.Updater.GetBot().Token)
 
-			image, err := downloadFile(urlImage)
+			ext := filepath.Ext(urlImage)
+
+			image, err := downloadFile(urlImage, ext)
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			//	ctxs := context.Background()
-
-			//	bytes, err := openaiClient.CreateFileBytes(ctxs, openai.FileBytesRequest{
-			//		Name:    "Пример",
-			//		Bytes:   []byte(image),
-			//		Purpose: openai.PurposeFineTune,
-			//	})
-
-			if err != nil {
-				return
-			}
-
-			fmt.Println("🤓🤓🤓🤓🤓")
-			//	fmt.Println(bytes)
-			fmt.Println("🤓🤓🤓🤓🤓")
-
-			//chat.GetChat().CreateFile()
-
-			// ChatMessageImageURL
-
-			// Определяем структуры для JSON
 
 			imgUrl := openai.ChatMessageImageURL{
 				URL: image,
@@ -131,9 +185,8 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentText := openai.ChatMessagePart{
-				Text:     "Реши задачу и результат приведи в формат HTML допустимы только теги <b>, <i>, <u>, <s>, <span>, <a>, <pre>, <code>, <blockquote>, другие HTML Теги использовать запрещено, приведи формулы в удобном виде с LaTeX, чтобы они были хорошо читаемыми,",
-				ImageURL: &imgUrl,
-				Type:     openai.ChatMessagePartTypeText,
+				Text: "Не используй нотацию LaTeX, используй математические символы",
+				Type: openai.ChatMessagePartTypeText,
 			}
 
 			// Создаём JSON-объект в виде структуры
@@ -142,15 +195,6 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 					Role:         "user",
 					MultiContent: []openai.ChatMessagePart{contentImg, contentText},
 				},
-			}
-
-			//jsonData, err := json.Marshal(data)
-
-			//	fmt.Println(string(jsonData))
-
-			if err != nil {
-				fmt.Println("Ошибка при кодировании в JSON:", err)
-				return
 			}
 
 			var contextGpt *gin.Context
@@ -172,15 +216,39 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			return
 
 		} else {
-			fmt.Println("Нет доступных изображений")
+
+			contentText := openai.ChatMessagePart{
+				Text: message.Text,
+				Type: openai.ChatMessagePartTypeText,
+			}
+
+			// Создаём JSON-объект в виде структуры
+			data := []openai.ChatCompletionMessage{
+				{
+					Role:         "user",
+					MultiContent: []openai.ChatMessagePart{contentText},
+				},
+			}
+
+			var contextGpt *gin.Context
+			contextGpt = &gin.Context{}
+
+			answer, err := chat.Chat(contextGpt, data)
+
+			if err != nil {
+				logrus.Error(err)
+			}
+
+			ctx.Updater.Handler.SendResult(
+				message.Chat.ID,
+				answer.Content,
+				models.Button{
+					Type: "show_main_menu",
+				},
+			)
+			return
+
 		}
-
-		//	actionInfo := domains.ActionInfo{
-		//		Message: &domains.Message{Role: "User", Content: mm},
-		//	}
-
-		// msg := actionInfo.GetText()
-		//	messages := domains.MakeMessages(msg)
 
 	}
 
@@ -200,7 +268,7 @@ func (h *FinishHandler) Handle(message *tgbotapi.Message, ctx *MessageContext) {
 	*/
 }
 
-func downloadFile(url string) (string, error) {
+func downloadFile(url string, fileMimeType string) (string, error) {
 	//Get the response bytes from the url
 	response, err := http.Get(url)
 	if err != nil {
@@ -215,47 +283,18 @@ func downloadFile(url string) (string, error) {
 	}
 
 	// Кодируем в Base64
-	base64String, _ := EncodeImageToBase64(bodyBytes)
-
-	//bodyBytes = []byte(strings.ToValidUTF8(string(bodyBytes), ""))
-	//fmt.Println("!!!!")
-	//fmt.Println(string(bodyBytes))
-	//if response.StatusCode != 200 {
-	//	return errors.New("Received non 200 response code")
-	//	}
-	//Create a empty file
-
-	//Write the bytes to the fiel
-	//_, err = io.Copy(file, response.Body)
-
-	// Парсим JSON как массив
-	// var records []map[string]interface{}
-	//	if err := json.Unmarshal(bodyBytes, &records); err != nil {
-	//	//	fmt.Println("Ошибка JSON:", err)
-	//	}
-
-	//	var jsonlData string
-
-	// Записываем каждую строку как отдельный JSON-объект
-	//	for _, record := range records {
-	//	line, _ := json.Marshal(record) // Конвертируем в JSON строку
-	//		jsonlData += string(line) + "\n"
-	//}
-
-	//fmt.Println("Файл успешно конвертирован в .jsonl!")
-	//	fmt.Println(jsonlData)
+	base64String, _ := EncodeImageToBase64(bodyBytes, fileMimeType)
 
 	return base64String, nil
 }
 
-func EncodeImageToBase64(imageBytes []byte) (string, error) {
+func EncodeImageToBase64(imageBytes []byte, fileMimeType string) (string, error) {
 
 	// Кодируем в base64
 	base64Str := base64.StdEncoding.EncodeToString(imageBytes)
 
 	// Определяем MIME-тип по расширению
-	//ext := filepath.Ext(filePath)
-	mimeType := mime.TypeByExtension(".jpg")
+	mimeType := mime.TypeByExtension(fileMimeType)
 	if mimeType == "" {
 		mimeType = "application/octet-stream" // По умолчанию, если неизвестный тип
 	}
