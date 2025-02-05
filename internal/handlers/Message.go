@@ -122,7 +122,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentText := openai.ChatMessagePart{
-				Text: "Не используй нотацию LaTeX, используй математические символы",
+				Text: "Не используй нотацию LaTeX, используй математические символы, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -185,7 +185,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentText := openai.ChatMessagePart{
-				Text: "Не используй нотацию LaTeX, используй математические символы",
+				Text: "Не используй нотацию LaTeX, используй математические символы, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -218,7 +218,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		} else {
 
 			contentText := openai.ChatMessagePart{
-				Text: message.Text,
+				Text: message.Text + ", ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
