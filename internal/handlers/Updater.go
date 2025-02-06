@@ -47,6 +47,7 @@ func (updater *UpdateTelegramData) Init() error {
 			}).Handle(update.CallbackQuery, &CallBackContext{
 				Updater: updater,
 				Payload: "payload",
+				Config:  newConfig,
 			})
 		}
 
@@ -58,6 +59,7 @@ func (updater *UpdateTelegramData) Init() error {
 			}).Handle(update.Message, &MessageContext{
 				Updater: updater,
 				Payload: "payload",
+				Config:  newConfig,
 			})
 		}
 

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/digkill/telegram-chatgpt/internal/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
@@ -16,6 +16,7 @@ type CallBackContext struct {
 	Updater     *UpdateTelegramData
 	RequestData *models.Button
 	Payload     string
+	Config      *config.Config
 }
 
 type MainMenuHandler struct {
@@ -23,10 +24,6 @@ type MainMenuHandler struct {
 }
 
 func (i *MainMenuHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *CallBackContext) {
-
-	fmt.Println("🪭🪭🪭🪭🪭")
-	fmt.Println(ctx.Updater)
-	fmt.Println("🪭🪭🪭🪭🪭")
 
 	if ctx.RequestData != nil && ctx.RequestData.Type == "chatGPT" {
 

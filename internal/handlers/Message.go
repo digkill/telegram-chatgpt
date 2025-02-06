@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/base64"
 	"fmt"
+	database "github.com/digkill/telegram-chatgpt/internal/components"
+	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/digkill/telegram-chatgpt/internal/models"
 	"github.com/digkill/telegram-chatgpt/internal/services/chatgpt"
 	"github.com/gin-gonic/gin"
@@ -20,6 +22,7 @@ import (
 type MessageContext struct {
 	Updater *UpdateTelegramData
 	Payload string
+	Config  *config.Config
 }
 
 type MessageHandler interface {
@@ -68,6 +71,18 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			},
 		)
 		*/
+
+		var databaseConfig = ctx.Config.DB
+
+		var user = models.NewUser(database.NewDb(&databaseConfig))
+
+		userModel, _ := user.FindUserByUsername(message.Chat.UserName)
+
+		if userModel == nil {
+
+			userModel, _ = user.CreateUser(message.Chat.UserName)
+
+		}
 
 		return
 	} else {
