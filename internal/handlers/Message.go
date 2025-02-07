@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-const LIMIT_DAY_PROMPT int = 10
+const LIMIT_DAY_PROMPT int = 110
 
 type MessageContext struct {
 	Updater *UpdateTelegramData
@@ -245,7 +245,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentText := openai.ChatMessagePart{
-				Text: "Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
+				Text: " Степени и функции отображай в виде печатной книги, Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -278,7 +278,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		} else {
 
 			contentText := openai.ChatMessagePart{
-				Text: message.Text + "Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
+				Text: message.Text + " Степени и функции отображай в виде печатной книги, Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
