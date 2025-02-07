@@ -245,7 +245,12 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentText := openai.ChatMessagePart{
-				Text: " Степени и функции отображай в виде печатной книги, Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
+				Text: message.Text,
+				Type: openai.ChatMessagePartTypeText,
+			}
+
+			contentSystem := openai.ChatMessagePart{
+				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -254,6 +259,10 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 				{
 					Role:         "user",
 					MultiContent: []openai.ChatMessagePart{contentImg, contentText},
+				},
+				{
+					Role:         "system",
+					MultiContent: []openai.ChatMessagePart{contentSystem},
 				},
 			}
 
@@ -278,7 +287,12 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		} else {
 
 			contentText := openai.ChatMessagePart{
-				Text: message.Text + " Степени и функции отображай в виде печатной книги, Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
+				Text: message.Text,
+				Type: openai.ChatMessagePartTypeText,
+			}
+
+			contentSystem := openai.ChatMessagePart{
+				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -287,6 +301,10 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 				{
 					Role:         "user",
 					MultiContent: []openai.ChatMessagePart{contentText},
+				},
+				{
+					Role:         "system",
+					MultiContent: []openai.ChatMessagePart{contentSystem},
 				},
 			}
 

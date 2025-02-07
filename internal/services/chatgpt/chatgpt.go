@@ -65,8 +65,8 @@ func (c ChatGPT) send(ctx context.Context, chatGPTMessages []openai.ChatCompleti
 		openai.ChatCompletionRequest{
 			Model:    c.model,
 			Messages: chatGPTMessages,
-			//MaxTokens: 100,
-			Store: false,
+			// MaxTokens: 100,
+			// Store: false,
 		})
 	if err != nil {
 		return nil, err
