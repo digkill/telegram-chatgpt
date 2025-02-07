@@ -28,9 +28,17 @@ type MigrationConfig struct {
 	DatabaseName   string `mapstructure:"database_name"`
 }
 
+type RedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	Db       int    `mapstructure:"db"`
+}
+
 type Config struct {
 	Telegram TelegramConfig `mapstructure:"telegram"`
 	DB       DatabaseConfig `mapstructure:"database"`
+	Redis    RedisConfig    `mapstructure:"redis"`
 }
 
 func NewConfig() *Config {
@@ -62,6 +70,18 @@ func NewConfig() *Config {
 		Name:         dbName,
 		MaxIdleConns: maxIdleConns,
 		MaxOpenConns: maxOpenConns,
+	}
+
+	var redisHost = os.Getenv("REDIS_HOST")
+	var redisPort, _ = strconv.Atoi(os.Getenv("REDIS_PORT"))
+	var redisPassword = os.Getenv("REDIS_PASSWORD")
+	var redisDB, _ = strconv.Atoi(os.Getenv("REDIS_DB"))
+
+	config.Redis = RedisConfig{
+		Host:     redisHost,
+		Port:     redisPort,
+		Password: redisPassword,
+		Db:       redisDB,
 	}
 
 	return config

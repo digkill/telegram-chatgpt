@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
-	database "github.com/digkill/telegram-chatgpt/internal/components"
+	"github.com/digkill/telegram-chatgpt/internal/components/database"
+	"github.com/digkill/telegram-chatgpt/internal/components/redis"
 	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/digkill/telegram-chatgpt/internal/models"
 	"github.com/digkill/telegram-chatgpt/internal/services/chatgpt"
@@ -11,13 +13,17 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 )
+
+const LIMIT_DAY_PROMPT int = 10
 
 type MessageContext struct {
 	Updater *UpdateTelegramData
@@ -61,6 +67,53 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		return
 	}
 
+	var databaseConfig = ctx.Config.DB
+	var redisConfig = ctx.Config.Redis
+	var user = models.NewUser(database.NewDb(&databaseConfig))
+
+	userModel, _ := user.FindUserByUsername(message.Chat.UserName)
+
+	if userModel != nil {
+		var journalModel = models.NewJournal(database.NewDb(&databaseConfig))
+
+		var newRedis = redis.NewRedis(&redisConfig)
+
+		_, err := newRedis.GetClient().Exists(context.Background(), message.Chat.UserName).Result()
+		if err != nil {
+			log.Errorf("There is an error when make 'hasData' Error: " + err.Error())
+		}
+
+		count, _ := strconv.Atoi(newRedis.GetData(message.Chat.UserName))
+
+		if count != 0 {
+			err := newRedis.SetData(message.Chat.UserName, strconv.Itoa(count+1), 0)
+			if err != nil {
+				return
+			}
+
+		} else {
+			err := newRedis.SetData(message.Chat.UserName, strconv.Itoa(count), time.Hour*24)
+			if err != nil {
+				return
+			}
+		}
+
+		var journal, _ = journalModel.CreateJournal(userModel.Id, message.Text, count)
+
+		if journal != nil {
+
+			if count > LIMIT_DAY_PROMPT {
+				ctx.Updater.Handler.SendResult(
+					message.Chat.ID,
+					"Извините. Дневной лимит запросов исчерпан 😥",
+					models.Button{},
+				)
+				return
+			}
+		}
+
+	}
+
 	if message.Command() == "start" {
 
 		/*ctx.Updater.Handler.SendListMenu(
@@ -72,16 +125,8 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		)
 		*/
 
-		var databaseConfig = ctx.Config.DB
-
-		var user = models.NewUser(database.NewDb(&databaseConfig))
-
-		userModel, _ := user.FindUserByUsername(message.Chat.UserName)
-
 		if userModel == nil {
-
 			userModel, _ = user.CreateUser(message.Chat.UserName)
-
 		}
 
 		return

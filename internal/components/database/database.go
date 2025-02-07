@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/digkill/telegram-chatgpt/internal/components/driver"
+	"github.com/digkill/telegram-chatgpt/internal/components/database/driver"
 	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"

@@ -2,8 +2,7 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
-	database "github.com/digkill/telegram-chatgpt/internal/components"
+	"github.com/digkill/telegram-chatgpt/internal/components/database"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"time"
 )
@@ -21,10 +20,8 @@ type User struct {
 
 func (user *User) FindUserByUsername(username string) (*UserModel, error) {
 	var userModel UserModel
-	err := user.GetSqlDb().QueryRowx("SELECT * FROM users_tg_gpt WHERE username = ?", username).StructScan(&userModel)
-	fmt.Println("@@@@@@@@@@")
-	fmt.Println(err)
-	fmt.Println("@@@@@@@@@@")
+	err := user.GetSqlDb().QueryRowx("SELECT * FROM users_tg_gpt WHERE username = ? LIMIT 1", username).StructScan(&userModel)
+
 	if err != nil {
 		return nil, err
 	}
