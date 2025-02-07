@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-const LIMIT_DAY_PROMPT int = 10
+const LIMIT_DAY_PROMPT int = 110
 
 type MessageContext struct {
 	Updater *UpdateTelegramData
@@ -250,7 +250,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentSystem := openai.ChatMessagePart{
-				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке, ответ запиши математическими формулами",
+				Text: "Не используй нотацию LaTeX, ответы пиши только на русском языке, ответ запиши математическими формулами. Начинаем новую тему, без учета предыдущих разговоров.",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -292,7 +292,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentSystem := openai.ChatMessagePart{
-				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке, ответ запиши математическими формулами",
+				Text: "Не используй нотацию LaTeX, ответы пиши только на русском языке, ответ запиши математическими формулами. Начинаем новую тему, без учета предыдущих разговоров.",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
