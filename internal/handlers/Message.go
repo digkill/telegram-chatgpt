@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-const LIMIT_DAY_PROMPT int = 110
+const LIMIT_DAY_PROMPT int = 10
 
 type MessageContext struct {
 	Updater *UpdateTelegramData
