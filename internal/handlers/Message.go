@@ -250,7 +250,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentSystem := openai.ChatMessagePart{
-				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
+				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке, ответ запиши математическими формулами",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -292,7 +292,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentSystem := openai.ChatMessagePart{
-				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке",
+				Text: "Начинаем новую тему: без учета предыдущих разговоров. Не используй нотацию LaTeX, используй только математические символы, ответы пиши только на русском языке, ответ запиши математическими формулами",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
