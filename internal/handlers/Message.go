@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-const LIMIT_DAY_PROMPT int = 10
+const LIMIT_DAY_PROMPT int = 110
 
 type MessageContext struct {
 	Updater *UpdateTelegramData
@@ -61,7 +61,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 	if message.Command() == "author" {
 		ctx.Updater.Handler.SendResult(
 			message.Chat.ID,
-			"mediarise.ru",
+			"<Vitaliy Edifanov> mediarise.ru",
 			models.Button{},
 		)
 		return
