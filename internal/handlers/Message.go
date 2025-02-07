@@ -151,7 +151,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		openaiClient := openai.NewClientWithConfig(config)
 		chat := chatgpt.NewChatGPT(openaiClient)
 
-		voice := message.Voice
+		/*voice := message.Voice
 
 		if voice != nil {
 
@@ -182,7 +182,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentText := openai.ChatMessagePart{
-				Text: "Не используй Tex, не используй форматирование функций, Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
+				Text: "Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -212,7 +212,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			)
 			return
 
-		}
+		} */
 
 		images := message.Photo
 
@@ -245,7 +245,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentText := openai.ChatMessagePart{
-				Text: "Не используй Tex, не используй форматирование функций, Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
+				Text: "Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -278,7 +278,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		} else {
 
 			contentText := openai.ChatMessagePart{
-				Text: message.Text + "Не используй Tex, не используй форматирование функций, Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
+				Text: message.Text + "Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
 				Type: openai.ChatMessagePartTypeText,
 			}
 
