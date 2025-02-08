@@ -244,8 +244,13 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 				Type:     openai.ChatMessagePartTypeImageURL,
 			}
 
+			promptImage := "Реши задачу с картинки"
+			if message.Text != "" {
+				promptImage = message.Text
+			}
+
 			contentText := openai.ChatMessagePart{
-				Text: message.Text,
+				Text: promptImage,
 				Type: openai.ChatMessagePartTypeText,
 			}
 
