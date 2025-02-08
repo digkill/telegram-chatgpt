@@ -98,7 +98,28 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 		}
 
-		var journal, _ = journalModel.CreateJournal(userModel.Id, message.Text, count)
+		var prompt = message.Text
+		images := message.Photo
+
+		if images != nil && len(*images) > 0 {
+			photoId := (*images)[1].FileID
+
+			fileId := tgbotapi.FileConfig{FileID: photoId}
+
+			file, err := ctx.Updater.GetBot().GetFile(fileId)
+			if err != nil {
+				fmt.Println("⚡️⚡️⚡️⚡️⚡️")
+				fmt.Println("Ошибка получения файла!")
+				fmt.Println("⚡️⚡️⚡️⚡️⚡️")
+				return
+			}
+
+			urlImage := file.Link(ctx.Updater.GetBot().Token)
+			prompt = prompt + " " + urlImage
+
+		}
+
+		var journal, _ = journalModel.CreateJournal(userModel.Id, prompt, count)
 
 		if journal != nil {
 
@@ -216,8 +237,12 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 		images := message.Photo
 
+		fmt.Println("😳😳😳😳😳")
+		fmt.Println(images)
+		fmt.Println("😳😳😳😳😳")
+
 		if images != nil && len(*images) > 0 {
-			photoId := (*images)[0].FileID
+			photoId := (*images)[1].FileID
 
 			fileId := tgbotapi.FileConfig{FileID: photoId}
 
@@ -243,6 +268,10 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 				ImageURL: &imgUrl,
 				Type:     openai.ChatMessagePartTypeImageURL,
 			}
+
+			fmt.Println("🔔🔔🔔🔔🔔🔔")
+			fmt.Println(imgUrl)
+			fmt.Println("🔔🔔🔔🔔🔔🔔")
 
 			promptImage := "Реши задачу с картинки"
 			if message.Text != "" {
@@ -270,6 +299,10 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 					MultiContent: []openai.ChatMessagePart{contentSystem},
 				},
 			}
+
+			fmt.Println("🔔🔔🔔🔔🔔🔔")
+			fmt.Println(data)
+			fmt.Println("🔔🔔🔔🔔🔔🔔")
 
 			var contextGpt *gin.Context
 			contextGpt = &gin.Context{}
