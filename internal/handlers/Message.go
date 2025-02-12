@@ -237,9 +237,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 		images := message.Photo
 
-		fmt.Println("😳😳😳😳😳")
-		fmt.Println(images)
-		fmt.Println("😳😳😳😳😳")
+		var systemPrompt = "Не используй нотацию LaTeX, не используй markdown, ответы пиши только на русском языке. Начинаем новую тему, без учета предыдущих разговоров."
 
 		if images != nil && len(*images) > 0 {
 			photoId := (*images)[1].FileID
@@ -284,7 +282,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentSystem := openai.ChatMessagePart{
-				Text: "Не используй нотацию LaTeX, ответы пиши только на русском языке, ответ запиши математическими формулами. Начинаем новую тему, без учета предыдущих разговоров.",
+				Text: systemPrompt,
 				Type: openai.ChatMessagePartTypeText,
 			}
 
@@ -299,10 +297,6 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 					MultiContent: []openai.ChatMessagePart{contentSystem},
 				},
 			}
-
-			fmt.Println("🔔🔔🔔🔔🔔🔔")
-			fmt.Println(data)
-			fmt.Println("🔔🔔🔔🔔🔔🔔")
 
 			var contextGpt *gin.Context
 			contextGpt = &gin.Context{}
@@ -330,7 +324,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			}
 
 			contentSystem := openai.ChatMessagePart{
-				Text: "Не используй нотацию LaTeX, ответы пиши только на русском языке, ответ запиши математическими формулами. Начинаем новую тему, без учета предыдущих разговоров.",
+				Text: systemPrompt,
 				Type: openai.ChatMessagePartTypeText,
 			}
 
