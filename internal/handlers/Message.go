@@ -271,7 +271,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			fmt.Println(imgUrl)
 			fmt.Println("🔔🔔🔔🔔🔔🔔")
 
-			promptImage := "Реши задачу с картинки"
+			promptImage := "Реши задачу с картинки, нотацию LaTeX использовать нельзя. markdown использовать нельзя"
 			if message.Text != "" {
 				promptImage = message.Text
 			}
