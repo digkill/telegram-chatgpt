@@ -2,11 +2,11 @@ package domains
 
 import (
 	"encoding/json"
-	"github.com/digkill/telegram-chatgpt/internal/config"
-	"github.com/digkill/telegram-chatgpt/internal/models"
-	"github.com/digkill/telegram-chatgpt/internal/services/telegram"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/config"
+	"gitlab.com/mediarise/appleclassbot/internal/models"
+	"gitlab.com/mediarise/appleclassbot/internal/services/telegram"
 )
 
 type Handler struct {
@@ -23,6 +23,17 @@ func (handler *Handler) SendMessageTelegram(chatId int64, message string) error 
 	msg.ParseMode = tgbotapi.ModeMarkdown
 
 	return handler.SendMessageObjectTelegram(msg)
+}
+
+func (handler *Handler) SendMessageTextTelegram(chatId int64, message string, parseMode string) (tgbotapi.Message, error) {
+	msg := tgbotapi.NewMessage(chatId, message)
+
+	msg.ParseMode = parseMode
+	if parseMode == "" {
+		msg.ParseMode = tgbotapi.ModeMarkdown
+	}
+	return handler.bot.Send(msg)
+
 }
 
 func (handler *Handler) SendMessageObjectTelegram(message tgbotapi.MessageConfig) error {
@@ -126,6 +137,17 @@ func (handler *Handler) buttonToString(data models.Button) string {
 		return string(result)
 	}
 	return ""
+}
+
+func (handler *Handler) RemoveMessage(chatId int64, messageId int) (tgbotapi.APIResponse, error) {
+	deleteMessageConfig := tgbotapi.NewDeleteMessage(chatId, messageId)
+
+	response, err := handler.bot.DeleteMessage(deleteMessageConfig)
+	if err != nil {
+		return tgbotapi.APIResponse{}, err
+	}
+	return response, nil
+
 }
 
 func NewHandler(bot telegram.Telegram) *Handler {

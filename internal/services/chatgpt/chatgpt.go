@@ -3,8 +3,8 @@ package chatgpt
 import (
 	"context"
 	"errors"
-	"github.com/digkill/telegram-chatgpt/internal/domains"
 	"github.com/sashabaranov/go-openai"
+	"gitlab.com/mediarise/appleclassbot/internal/domains"
 )
 
 type ChatGPT struct {

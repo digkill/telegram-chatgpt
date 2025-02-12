@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	config "github.com/digkill/telegram-chatgpt/internal/config"
-	"github.com/digkill/telegram-chatgpt/internal/domains"
-	"github.com/digkill/telegram-chatgpt/internal/services/telegram"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	config "gitlab.com/mediarise/appleclassbot/internal/config"
+	"gitlab.com/mediarise/appleclassbot/internal/domains"
+	"gitlab.com/mediarise/appleclassbot/internal/services/telegram"
 )
 
 type UpdateTelegramData struct {

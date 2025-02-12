@@ -1,4 +1,4 @@
-module github.com/digkill/telegram-chatgpt
+module gitlab.com/mediarise/appleclassbot
 
 go 1.22.2
 

@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/digkill/telegram-chatgpt/internal/config"
-	"github.com/digkill/telegram-chatgpt/internal/domains"
-	"github.com/digkill/telegram-chatgpt/internal/handlers"
-	"github.com/digkill/telegram-chatgpt/internal/services/telegram"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/config"
+	"gitlab.com/mediarise/appleclassbot/internal/domains"
+	"gitlab.com/mediarise/appleclassbot/internal/handlers"
+	"gitlab.com/mediarise/appleclassbot/internal/services/telegram"
 	"os"
 )
 

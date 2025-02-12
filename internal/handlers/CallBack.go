@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"github.com/digkill/telegram-chatgpt/internal/config"
-	"github.com/digkill/telegram-chatgpt/internal/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/config"
+	"gitlab.com/mediarise/appleclassbot/internal/models"
 	"regexp"
 )
 

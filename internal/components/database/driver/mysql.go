@@ -1,11 +1,11 @@
 package driver
 
 import (
-	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/config"
 	"os"
 	"strconv"
 )

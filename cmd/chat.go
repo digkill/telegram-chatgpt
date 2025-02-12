@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/digkill/telegram-chatgpt/internal/services/chatgpt"
 	"github.com/sashabaranov/go-openai"
+	"gitlab.com/mediarise/appleclassbot/internal/services/chatgpt"
 	"os"
 )
 

@@ -35,10 +35,17 @@ type RedisConfig struct {
 	Db       int    `mapstructure:"db"`
 }
 
+type ChatGPTConfig struct {
+	Model string `mapstructure:"model"`
+	Token string `mapstructure:"token"`
+	Url   string `mapstructure:"url"`
+}
+
 type Config struct {
 	Telegram TelegramConfig `mapstructure:"telegram"`
 	DB       DatabaseConfig `mapstructure:"database"`
 	Redis    RedisConfig    `mapstructure:"redis"`
+	ChatGPT  ChatGPTConfig  `mapstructure:"chat_gpt"`
 }
 
 func NewConfig() *Config {
@@ -82,6 +89,16 @@ func NewConfig() *Config {
 		Port:     redisPort,
 		Password: redisPassword,
 		Db:       redisDB,
+	}
+
+	var chatGPTModel = os.Getenv("CHAT_GPT_MODEL")
+	var chatGPTToken = os.Getenv("CHAT_GPT_TOKEN")
+	var chatGPTUrl = os.Getenv("CHAT_GPT_URL")
+
+	config.ChatGPT = ChatGPTConfig{
+		Model: chatGPTModel,
+		Token: chatGPTToken,
+		Url:   chatGPTUrl,
 	}
 
 	return config

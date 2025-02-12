@@ -2,8 +2,8 @@ package models
 
 import (
 	"database/sql"
-	"github.com/digkill/telegram-chatgpt/internal/components/database"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"gitlab.com/mediarise/appleclassbot/internal/components/database"
 	"time"
 )
 

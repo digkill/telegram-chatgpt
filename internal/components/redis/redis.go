@@ -2,9 +2,9 @@ package redis
 
 import (
 	"context"
-	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/config"
 	"strconv"
 	"time"
 )
@@ -54,6 +54,23 @@ func (component *RedisComponent) HasData(key string) bool {
 	}
 	return val == int64(1)
 }
+
+func (component *RedisComponent) Increment(key string) int64 {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	val, err := component.GetClient().Incr(ctx, key).Result()
+	if err != nil {
+		log.Errorf("There is an error when make 'Increment' Error: " + err.Error())
+	}
+
+	return val
+}
+
+//func (c cmdable) Incr(ctx context.Context, key string) *IntCmd {
+//	cmd := NewIntCmd(ctx, "incr", key)
+//	_ = c(ctx, cmd)
+//	return cmd
+//}
 
 func NewRedis(config *config.RedisConfig) *RedisComponent {
 	redisComponent := &RedisComponent{

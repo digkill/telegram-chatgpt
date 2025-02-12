@@ -1,14 +1,14 @@
 package database
 
 import (
-	"github.com/digkill/telegram-chatgpt/internal/components/database/driver"
-	"github.com/digkill/telegram-chatgpt/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/components/database/driver"
+	"gitlab.com/mediarise/appleclassbot/internal/config"
 	"os"
 )
 
@@ -33,6 +33,7 @@ func (migration *MigrationComponent) initDatabaseInstance() (*migrate.Migrate, e
 		log.Fatalf("There is an error when get a migration driver: %v", err)
 		os.Exit(1)
 	}
+
 	return migrate.NewWithDatabaseInstance(
 		"file://"+migration.migrationConfig.Path,
 		migration.driver.GetDataBaseNameMigration(), driverMigration,

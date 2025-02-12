@@ -1,23 +1,21 @@
 package handlers
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/digkill/telegram-chatgpt/internal/components/database"
-	"github.com/digkill/telegram-chatgpt/internal/components/redis"
-	"github.com/digkill/telegram-chatgpt/internal/config"
-	"github.com/digkill/telegram-chatgpt/internal/models"
-	"github.com/digkill/telegram-chatgpt/internal/services/chatgpt"
 	"github.com/gin-gonic/gin"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/components/chatGPT"
+	"gitlab.com/mediarise/appleclassbot/internal/components/database"
+	"gitlab.com/mediarise/appleclassbot/internal/components/redis"
+	"gitlab.com/mediarise/appleclassbot/internal/config"
+	"gitlab.com/mediarise/appleclassbot/internal/models"
 	"io"
 	"mime"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -77,25 +75,18 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		var journalModel = models.NewJournal(database.NewDb(&databaseConfig))
 
 		var newRedis = redis.NewRedis(&redisConfig)
+		var keyUsername = message.Chat.UserName
 
-		_, err := newRedis.GetClient().Exists(context.Background(), message.Chat.UserName).Result()
-		if err != nil {
-			log.Errorf("There is an error when make 'hasData' Error: " + err.Error())
-		}
+		isHasData := newRedis.HasData(keyUsername)
 
-		count, _ := strconv.Atoi(newRedis.GetData(message.Chat.UserName))
-
-		if count != 0 {
-			err := newRedis.SetData(message.Chat.UserName, strconv.Itoa(count+1), 0)
+		var count = 0
+		if isHasData == false {
+			err := newRedis.SetData(keyUsername, strconv.Itoa(0), time.Hour*24)
 			if err != nil {
-				return
+				log.Errorf("Ошибка установки значения: " + err.Error())
 			}
-
 		} else {
-			err := newRedis.SetData(message.Chat.UserName, strconv.Itoa(count), time.Hour*24)
-			if err != nil {
-				return
-			}
+			count = int(newRedis.Increment(keyUsername))
 		}
 
 		var prompt = message.Text
@@ -108,10 +99,8 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 			file, err := ctx.Updater.GetBot().GetFile(fileId)
 			if err != nil {
-				fmt.Println("⚡️⚡️⚡️⚡️⚡️")
-				fmt.Println("Ошибка получения файла!")
-				fmt.Println("⚡️⚡️⚡️⚡️⚡️")
-				return
+
+				log.Errorf("Ошибка получения файла!: " + err.Error())
 			}
 
 			urlImage := file.Link(ctx.Updater.GetBot().Token)
@@ -153,24 +142,18 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		return
 	} else {
 
-		err := ctx.Updater.SendMessageTelegram(
+		messObj, err := ctx.Updater.SendMessageTextTelegram(
 			message.Chat.ID,
 			"Решаю задачу 🤓...",
+			tgbotapi.ModeMarkdown,
 		)
 		if err != nil {
 			return
 		}
 
-		var openAIToken = os.Getenv("CHATGPT_TOKEN")
-		var openAIURL = os.Getenv("CHATGPT_URL")
+		var chatGPTConfig = ctx.Config.ChatGPT
 
-		config := openai.DefaultConfig(openAIToken)
-		if openAIURL != "" {
-			config.BaseURL = openAIURL
-		}
-
-		openaiClient := openai.NewClientWithConfig(config)
-		chat := chatgpt.NewChatGPT(openaiClient)
+		chat := chatGPT.NewChatGPT(&chatGPTConfig)
 
 		/*voice := message.Voice
 
@@ -236,6 +219,10 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		} */
 
 		images := message.Photo
+
+		fmt.Println("😳😳😳😳😳")
+		fmt.Println(images)
+		fmt.Println("😳😳😳😳😳")
 
 		var systemPrompt = "нотацию LaTeX использовать нельзя. markdown использовать нельзя, ответы пиши только на русском языке. Начинаем новую тему, без учета предыдущих разговоров."
 
@@ -314,7 +301,6 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 					Type: "show_main_menu",
 				},
 			)
-			return
 
 		} else {
 
@@ -356,10 +342,14 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 					Type: "show_main_menu",
 				},
 			)
-			return
 
 		}
+		_, err = ctx.Updater.Handler.RemoveMessage(message.Chat.ID, messObj.MessageID)
+		if err != nil {
+			log.Errorf("Ошибка удаления сообщения: " + err.Error())
+		}
 
+		return
 	}
 
 	h.Next.Handle(message, ctx)
