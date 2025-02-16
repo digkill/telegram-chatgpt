@@ -8,6 +8,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/commands"
 	"gitlab.com/mediarise/appleclassbot/internal/components/chatGPT"
 	"gitlab.com/mediarise/appleclassbot/internal/components/database"
 	"gitlab.com/mediarise/appleclassbot/internal/components/redis"
@@ -67,7 +68,8 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 	var databaseConfig = ctx.Config.DB
 	var redisConfig = ctx.Config.Redis
-	var user = models.NewUser(database.NewDb(&databaseConfig))
+	var db = database.NewDb(&databaseConfig)
+	var user = models.NewUser(db)
 
 	userModel, _ := user.FindUserByUsername(message.Chat.UserName)
 
@@ -118,7 +120,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 					"Извините. Дневной лимит запросов исчерпан 😥",
 					models.Button{},
 				)
-				return
+				//	return
 			}
 		}
 
@@ -137,6 +139,15 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 		if userModel == nil {
 			userModel, _ = user.CreateUser(message.Chat.UserName)
+		}
+
+		//		userID := message.From.ID
+		//		text := message.Text
+
+		startCommand := commands.NewStartCommand(ctx.Updater.GetBot(), ctx.Config, db)
+		err := startCommand.Execute(message, message.From.ID, message.Chat.UserName)
+		if err != nil {
+			fmt.Println(err)
 		}
 
 		return
