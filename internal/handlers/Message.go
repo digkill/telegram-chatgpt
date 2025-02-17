@@ -111,6 +111,31 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		return
 	}
 
+	if message.Command() == "report" {
+		newReportCommand := commands.NewReportCommand(ctx.Updater.GetBot(), ctx.Config, db)
+		st, _ := newReportCommand.Execute()
+
+		// Вывод данных
+
+		ctx.Updater.SendMessageTelegram(
+			message.Chat.ID,
+			"Статистика пользователей по дням:")
+
+		for _, stat := range st {
+			fmt.Printf("Дата: %s, Пользователь: %d, Запросов: %d, Всего команд: %d\n",
+				stat.Date, stat.UserID, stat.RequestCount, stat.TotalCount)
+
+			ctx.Updater.SendMessageTelegram(
+				message.Chat.ID,
+				fmt.Sprintf("Дата: %s, Пользователь: %d, Запросов: %d, Всего команд: %d\n",
+					stat.Date, stat.UserID, stat.RequestCount, stat.TotalCount))
+
+		}
+
+		return
+
+	}
+
 	if message.Command() == "author" {
 		ctx.Updater.Handler.SendResult(
 			message.Chat.ID,
