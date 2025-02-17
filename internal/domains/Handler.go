@@ -62,7 +62,7 @@ func (handler *Handler) SendMainMenu(chatId int64, message string, data models.B
 	err := handler.SendMessageWithButtonsInRowToTelegram(
 		chatId,
 		message,
-		tgbotapi.NewInlineKeyboardButtonData("Меню", handler.buttonToString(data)),
+		tgbotapi.NewInlineKeyboardButtonData("Меню", handler.ButtonToString(data)),
 	)
 	if err == nil {
 		return true
@@ -72,7 +72,7 @@ func (handler *Handler) SendMainMenu(chatId int64, message string, data models.B
 
 func (handler *Handler) SendListMenu(chatId int64, message string, data models.Button) bool {
 	data.Type = "chatGPT"
-	chatGPTButton := handler.buttonToString(data)
+	chatGPTButton := handler.ButtonToString(data)
 	//data.Type = "baton"
 	//buttonButton := handler.buttonToString(data)
 	err := handler.SendMessageWithButtonsInRowsToTelegram(
@@ -94,12 +94,29 @@ func (handler *Handler) SendListMenu(chatId int64, message string, data models.B
 	}
 	return false
 }
+func (handler *Handler) SendRefMenu(chatId int64, message string, data models.Button) bool {
+
+	err := handler.SendMessageWithButtonsInRowsToTelegram(
+		chatId,
+		message,
+		tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("⛓️‍💥 Реферальная ссылка", "ref"),
+				tgbotapi.NewInlineKeyboardButtonData("👥 Количество приглашенных", "stats"),
+			),
+		),
+	)
+	if err == nil {
+		return true
+	}
+	return false
+}
 
 func (handler *Handler) SendResultAndReturnMenu(chatId int64, message string, data models.Button) bool {
 	err := handler.SendMessageWithButtonsInRowToTelegram(
 		chatId,
 		message,
-		tgbotapi.NewInlineKeyboardButtonData("Вернуться в меню", handler.buttonToString(data)),
+		tgbotapi.NewInlineKeyboardButtonData("Вернуться в меню", handler.ButtonToString(data)),
 	)
 	if err == nil {
 		return true
@@ -131,7 +148,7 @@ func (handler *Handler) SendMessageWithButtonsInRowsToTelegram(chatId int64, mes
 	return handler.SendMessageObjectTelegram(msg)
 }
 
-func (handler *Handler) buttonToString(data models.Button) string {
+func (handler *Handler) ButtonToString(data models.Button) string {
 	result, err := json.Marshal(data)
 	if err == nil {
 		return string(result)

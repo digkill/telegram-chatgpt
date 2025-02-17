@@ -42,7 +42,9 @@ func (updater *UpdateTelegramData) Init() error {
 			//&MainMenuHandler{
 			//Next:
 			&ChatGPTHandler{
-				Next: &FinishCallBackHandler{},
+				Next: &RefHandler{
+					Next: &FinishCallBackHandler{},
+				},
 				//	},
 			}).Handle(update.CallbackQuery, &CallBackContext{
 				Updater: updater,

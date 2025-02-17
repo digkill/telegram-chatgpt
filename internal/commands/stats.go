@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/mediarise/appleclassbot/internal/components/database"
 	"gitlab.com/mediarise/appleclassbot/internal/config"
@@ -19,21 +17,20 @@ type StatCommand struct {
 	db     *database.DbComponent
 }
 
-func (s *StatCommand) Execute(telegramUserId int, username string) error {
+func (s *StatCommand) Execute(telegramUserId int) (int, error) {
 	var count int
-	err := s.db.GetSqlDb().QueryRow("SELECT COUNT(*) FROM users WHERE referrer_id = ?", telegramUserId).Scan(&count)
+	err := s.db.GetSqlDb().QueryRow("SELECT COUNT(*) FROM tg_bot_referral WHERE referrer_id = ?", telegramUserId).Scan(&count)
 	if err != nil {
 		log.Println("Ошибка при получении статистики:", err)
-		return err
+		return 0, err
 	}
 
-	msg := tgbotapi.NewMessage(int64(telegramUserId), fmt.Sprintf("У вас %d рефералов! 🎉", count))
-	s.bot.Send(msg)
-	return nil
+	return count, nil
+
 }
 
-func NewStatCommand(bot telegram.Telegram, config *config.Config, db *database.DbComponent) *StartCommand {
-	return &StartCommand{
+func NewStatCommand(bot telegram.Telegram, config *config.Config, db *database.DbComponent) *StatCommand {
+	return &StatCommand{
 		bot:    bot,
 		config: config,
 		db:     db,

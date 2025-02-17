@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/mediarise/appleclassbot/internal/commands"
+	"gitlab.com/mediarise/appleclassbot/internal/components/database"
 	"gitlab.com/mediarise/appleclassbot/internal/config"
 	"gitlab.com/mediarise/appleclassbot/internal/models"
-	"regexp"
 )
 
 type CallBackHandler interface {
@@ -25,17 +27,6 @@ type MainMenuHandler struct {
 
 func (i *MainMenuHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *CallBackContext) {
 
-	if ctx.RequestData != nil && ctx.RequestData.Type == "chatGPT" {
-
-		ctx.Updater.Handler.SendListMenu(
-			callbackQuery.Message.Chat.ID,
-			"Привет! Странник!!",
-			models.Button{
-				Type: "show_main_menu",
-			},
-		)
-		return
-	}
 	i.Next.Handle(callbackQuery, ctx)
 }
 
@@ -45,19 +36,81 @@ type ChatGPTHandler struct {
 
 func (i *ChatGPTHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *CallBackContext) {
 
-	matched, err := regexp.MatchString(`"chatGPT"`, callbackQuery.Data)
-	if err != nil {
-		logrus.Error(err)
+	var databaseConfig = ctx.Config.DB
+	var db = database.NewDb(&databaseConfig)
+
+	if callbackQuery.Data == "ref" {
+		me, err := ctx.Updater.Handler.GetBot().GetMe()
+		if err != nil {
+			fmt.Println("🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️")
+			fmt.Println(err)
+			fmt.Println("🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️")
+		}
+
+		refLink := fmt.Sprintf("https://t.me/%s?start=%d", me.UserName, callbackQuery.Message.From.ID)
+		msg := tgbotapi.NewMessage(int64(callbackQuery.Message.From.ID), fmt.Sprintf("Ваша реферальная ссылка: [%s](%s)", refLink, refLink))
+		err = ctx.Updater.Handler.SendMessageTelegram(
+			callbackQuery.Message.Chat.ID,
+			msg.Text,
+		)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
 	}
 
-	if matched {
+	if callbackQuery.Data == "stats" {
+		statsCommand := commands.NewStatCommand(ctx.Updater.Handler.GetBot(), ctx.Config, db)
+		count, err := statsCommand.Execute(callbackQuery.Message.From.ID)
+		if err != nil {
+			fmt.Println(err)
+		}
 
+		msg := tgbotapi.NewMessage(int64(callbackQuery.Message.From.ID), fmt.Sprintf("У вас %d рефералов! 🎉", count))
 		ctx.Updater.Handler.SendMessageTelegram(
 			callbackQuery.Message.Chat.ID,
-			"Введите запрос:",
+			msg.Text,
 		)
-		return
+		if err != nil {
+			fmt.Println(err)
+		}
 
+		return
+	}
+
+	i.Next.Handle(callbackQuery, ctx)
+}
+
+type RefHandler struct {
+	Next CallBackHandler
+}
+
+func (i *RefHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *CallBackContext) {
+
+	if callbackQuery.Data == "ref_menu" {
+
+		me, err := ctx.Updater.GetBot().GetMe()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		ctx.Updater.Handler.SendRefMenu(
+			callbackQuery.Message.Chat.ID,
+			fmt.Sprintf("💌 Вы можете пригласить друзей и получить дополнительно 10 запросов в день за каждого друга!\n\n- Когда ваш друг запустит бота, вы получите дополнительно 10 запросов в день;\n- Вы можете пригласить неограниченное количество друзей;\n- Ваш друг должен впервые воспользоваться ботом по вашей персональной ссылке;\n\nСсылка (скопируй ее и отправь другу):  https://t.me/%s?start=%d\n\nИли просто перешлите сообщение ниже своим друзьям:", me.UserName, callbackQuery.Message.From.ID),
+			models.Button{
+				Type: "show_main_menu",
+			},
+		)
+		err = ctx.Updater.Handler.SendMessageTelegram(
+			callbackQuery.Message.Chat.ID,
+			fmt.Sprintf("Вы приглашены в бота [%s](https://t.me/%s?start=%d)!\nНажмите на ссылку, чтобы начать:\n🚀 [Запустить бота](https://t.me/%s?start=%d)",
+				me.UserName, me.UserName, callbackQuery.Message.Chat.ID, me.UserName, callbackQuery.Message.Chat.ID,
+			),
+		)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
 	}
 
 	i.Next.Handle(callbackQuery, ctx)

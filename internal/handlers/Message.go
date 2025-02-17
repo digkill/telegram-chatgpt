@@ -48,6 +48,7 @@ func (i *InitHandler) Handle(message *tgbotapi.Message, ctx *MessageContext) {
 			logrus.Errorf("Cannot send message. Error: " + err.Error())
 		}
 	}
+
 	i.Next.Handle(message, ctx)
 }
 
@@ -56,6 +57,59 @@ type CommandMenuHandler struct {
 }
 
 func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageContext) {
+	var databaseConfig = ctx.Config.DB
+	var redisConfig = ctx.Config.Redis
+	var db = database.NewDb(&databaseConfig)
+	var user = models.NewUser(db)
+
+	var limitDayPrompt = LIMIT_DAY_PROMPT
+
+	userModel, _ := user.FindUserByUsername(message.Chat.UserName)
+
+	stat, err := getStat(message, ctx, db)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	limitDayPrompt = limitDayPrompt + (stat * 10)
+
+	if message.Command() == "start" {
+		if userModel == nil {
+			userModel, _ = user.CreateUser(message.Chat.UserName)
+		}
+
+		startCommand := commands.NewStartCommand(ctx.Updater.GetBot(), ctx.Config, db)
+		err := startCommand.Execute(message, message.From.ID, message.Chat.UserName)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		return
+	}
+
+	if message.Command() == "ref" {
+		me, err := ctx.Updater.GetBot().GetMe()
+		if err != nil {
+			return
+		}
+
+		refCommand := commands.NewRefCommand(ctx.Updater.GetBot(), ctx.Config, db)
+		refCommand.Execute(message.From.ID, me.UserName)
+
+		return
+	}
+
+	if message.Command() == "stats" {
+		stat, err := getStat(message, ctx, db)
+		if err != nil {
+			return
+		}
+
+		msg := tgbotapi.NewMessage(int64(message.From.ID), fmt.Sprintf("У вас %d рефералов! 🎉", stat))
+		ctx.Updater.GetBot().Send(msg)
+
+		return
+	}
 
 	if message.Command() == "author" {
 		ctx.Updater.Handler.SendResult(
@@ -65,13 +119,6 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		)
 		return
 	}
-
-	var databaseConfig = ctx.Config.DB
-	var redisConfig = ctx.Config.Redis
-	var db = database.NewDb(&databaseConfig)
-	var user = models.NewUser(db)
-
-	userModel, _ := user.FindUserByUsername(message.Chat.UserName)
 
 	if userModel != nil {
 		var journalModel = models.NewJournal(database.NewDb(&databaseConfig))
@@ -113,255 +160,165 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		var journal, _ = journalModel.CreateJournal(userModel.Id, prompt, count)
 
 		if journal != nil {
+			limitDayPrompt = 1
+			if count > limitDayPrompt {
 
-			if count > LIMIT_DAY_PROMPT {
-				ctx.Updater.Handler.SendResult(
+				err = ctx.Updater.SendMessageWithButtonsInRowToTelegram(
 					message.Chat.ID,
 					"Извините. Дневной лимит запросов исчерпан 😥",
-					models.Button{},
+					tgbotapi.NewInlineKeyboardButtonData("Получить запросы бесплатно 🤖", "ref_menu"),
 				)
-				//	return
+				if err != nil {
+					logrus.Error(err)
+				}
+
+				return
 			}
 		}
 
 	}
 
-	if message.Command() == "start" {
+	messObj, err := ctx.Updater.SendMessageTextTelegram(
+		message.Chat.ID,
+		"Решаю задачу 🤓...",
+		tgbotapi.ModeMarkdown,
+	)
+	if err != nil {
+		return
+	}
 
-		/*ctx.Updater.Handler.SendListMenu(
+	var chatGPTConfig = ctx.Config.ChatGPT
+
+	chat := chatGPT.NewChatGPT(&chatGPTConfig)
+
+	images := message.Photo
+
+	var systemPrompt = "нотацию LaTeX использовать нельзя. markdown использовать нельзя, ответы пиши только на русском языке. Начинаем новую тему, без учета предыдущих разговоров."
+
+	if images != nil && len(*images) > 0 {
+		photoId := (*images)[1].FileID
+
+		fileId := tgbotapi.FileConfig{FileID: photoId}
+
+		file, err := ctx.Updater.GetBot().GetFile(fileId)
+		if err != nil {
+			return
+		}
+
+		urlImage := file.Link(ctx.Updater.GetBot().Token)
+
+		ext := filepath.Ext(urlImage)
+
+		image, err := downloadFile(urlImage, ext)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		imgUrl := openai.ChatMessageImageURL{
+			URL: image,
+		}
+
+		contentImg := openai.ChatMessagePart{
+			ImageURL: &imgUrl,
+			Type:     openai.ChatMessagePartTypeImageURL,
+		}
+
+		fmt.Println("🔔🔔🔔🔔🔔🔔")
+		fmt.Println(imgUrl)
+		fmt.Println("🔔🔔🔔🔔🔔🔔")
+
+		promptImage := "Реши задачу с картинки, нотацию LaTeX использовать нельзя. markdown использовать нельзя"
+		if message.Text != "" {
+			promptImage = message.Text
+		}
+
+		contentText := openai.ChatMessagePart{
+			Text: promptImage,
+			Type: openai.ChatMessagePartTypeText,
+		}
+
+		contentSystem := openai.ChatMessagePart{
+			Text: systemPrompt,
+			Type: openai.ChatMessagePartTypeText,
+		}
+
+		// Создаём JSON-объект в виде структуры
+		data := []openai.ChatCompletionMessage{
+			{
+				Role:         "user",
+				MultiContent: []openai.ChatMessagePart{contentImg, contentText},
+			},
+			{
+				Role:         "system",
+				MultiContent: []openai.ChatMessagePart{contentSystem},
+			},
+		}
+
+		var contextGpt *gin.Context
+		contextGpt = &gin.Context{}
+
+		answer, err := chat.Chat(contextGpt, data)
+
+		if err != nil {
+			logrus.Error(err)
+		}
+
+		ctx.Updater.Handler.SendResult(
 			message.Chat.ID,
-			"Выберите услугу",
+			answer.Content,
 			models.Button{
 				Type: "show_main_menu",
 			},
 		)
-		*/
 
-		if userModel == nil {
-			userModel, _ = user.CreateUser(message.Chat.UserName)
-		}
-
-		//		userID := message.From.ID
-		//		text := message.Text
-
-		startCommand := commands.NewStartCommand(ctx.Updater.GetBot(), ctx.Config, db)
-		err := startCommand.Execute(message, message.From.ID, message.Chat.UserName)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		return
 	} else {
 
-		messObj, err := ctx.Updater.SendMessageTextTelegram(
+		contentText := openai.ChatMessagePart{
+			Text: message.Text,
+			Type: openai.ChatMessagePartTypeText,
+		}
+
+		contentSystem := openai.ChatMessagePart{
+			Text: systemPrompt,
+			Type: openai.ChatMessagePartTypeText,
+		}
+
+		// Создаём JSON-объект в виде структуры
+		data := []openai.ChatCompletionMessage{
+			{
+				Role:         "user",
+				MultiContent: []openai.ChatMessagePart{contentText},
+			},
+			{
+				Role:         "system",
+				MultiContent: []openai.ChatMessagePart{contentSystem},
+			},
+		}
+
+		var contextGpt *gin.Context
+		contextGpt = &gin.Context{}
+
+		answer, err := chat.Chat(contextGpt, data)
+
+		if err != nil {
+			logrus.Error(err)
+		}
+
+		ctx.Updater.Handler.SendResult(
 			message.Chat.ID,
-			"Решаю задачу 🤓...",
-			tgbotapi.ModeMarkdown,
+			answer.Content,
+			models.Button{
+				Type: "show_main_menu",
+			},
 		)
-		if err != nil {
-			return
-		}
 
-		var chatGPTConfig = ctx.Config.ChatGPT
-
-		chat := chatGPT.NewChatGPT(&chatGPTConfig)
-
-		/*voice := message.Voice
-
-		if voice != nil {
-
-			voiceId := voice.FileID
-			fileMimeType := mime.TypeByExtension(filepath.Ext(voice.MimeType))
-
-			fileId := tgbotapi.FileConfig{FileID: voiceId}
-
-			file, err := ctx.Updater.GetBot().GetFile(fileId)
-			if err != nil {
-				return
-			}
-
-			urlFile := file.Link(ctx.Updater.GetBot().Token)
-
-			audio, err := downloadFile(urlFile, fileMimeType)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			imgUrl := openai.ChatMessageImageURL{
-				URL: audio,
-			}
-
-			contentImg := openai.ChatMessagePart{
-				ImageURL: &imgUrl,
-				Type:     openai.ChatMessagePartTypeImageURL,
-			}
-
-			contentText := openai.ChatMessagePart{
-				Text: "Не используй нотацию LaTeX, используй только математические символы, даже если данные на вход даны в другом виде, ответы пиши только на русском языке",
-				Type: openai.ChatMessagePartTypeText,
-			}
-
-			// Создаём JSON-объект в виде структуры
-			data := []openai.ChatCompletionMessage{
-				{
-					Role:         "user",
-					MultiContent: []openai.ChatMessagePart{contentImg, contentText},
-				},
-			}
-
-			var contextGpt *gin.Context
-			contextGpt = &gin.Context{}
-
-			answer, err := chat.Chat(contextGpt, data)
-
-			if err != nil {
-				logrus.Error(err)
-			}
-
-			ctx.Updater.Handler.SendResult(
-				message.Chat.ID,
-				answer.Content,
-				models.Button{
-					Type: "show_main_menu",
-				},
-			)
-			return
-
-		} */
-
-		images := message.Photo
-
-		fmt.Println("😳😳😳😳😳")
-		fmt.Println(images)
-		fmt.Println("😳😳😳😳😳")
-
-		var systemPrompt = "нотацию LaTeX использовать нельзя. markdown использовать нельзя, ответы пиши только на русском языке. Начинаем новую тему, без учета предыдущих разговоров."
-
-		if images != nil && len(*images) > 0 {
-			photoId := (*images)[1].FileID
-
-			fileId := tgbotapi.FileConfig{FileID: photoId}
-
-			file, err := ctx.Updater.GetBot().GetFile(fileId)
-			if err != nil {
-				return
-			}
-
-			urlImage := file.Link(ctx.Updater.GetBot().Token)
-
-			ext := filepath.Ext(urlImage)
-
-			image, err := downloadFile(urlImage, ext)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			imgUrl := openai.ChatMessageImageURL{
-				URL: image,
-			}
-
-			contentImg := openai.ChatMessagePart{
-				ImageURL: &imgUrl,
-				Type:     openai.ChatMessagePartTypeImageURL,
-			}
-
-			fmt.Println("🔔🔔🔔🔔🔔🔔")
-			fmt.Println(imgUrl)
-			fmt.Println("🔔🔔🔔🔔🔔🔔")
-
-			promptImage := "Реши задачу с картинки, нотацию LaTeX использовать нельзя. markdown использовать нельзя"
-			if message.Text != "" {
-				promptImage = message.Text
-			}
-
-			contentText := openai.ChatMessagePart{
-				Text: promptImage,
-				Type: openai.ChatMessagePartTypeText,
-			}
-
-			contentSystem := openai.ChatMessagePart{
-				Text: systemPrompt,
-				Type: openai.ChatMessagePartTypeText,
-			}
-
-			// Создаём JSON-объект в виде структуры
-			data := []openai.ChatCompletionMessage{
-				{
-					Role:         "user",
-					MultiContent: []openai.ChatMessagePart{contentImg, contentText},
-				},
-				{
-					Role:         "system",
-					MultiContent: []openai.ChatMessagePart{contentSystem},
-				},
-			}
-
-			var contextGpt *gin.Context
-			contextGpt = &gin.Context{}
-
-			answer, err := chat.Chat(contextGpt, data)
-
-			if err != nil {
-				logrus.Error(err)
-			}
-
-			ctx.Updater.Handler.SendResult(
-				message.Chat.ID,
-				answer.Content,
-				models.Button{
-					Type: "show_main_menu",
-				},
-			)
-
-		} else {
-
-			contentText := openai.ChatMessagePart{
-				Text: message.Text,
-				Type: openai.ChatMessagePartTypeText,
-			}
-
-			contentSystem := openai.ChatMessagePart{
-				Text: systemPrompt,
-				Type: openai.ChatMessagePartTypeText,
-			}
-
-			// Создаём JSON-объект в виде структуры
-			data := []openai.ChatCompletionMessage{
-				{
-					Role:         "user",
-					MultiContent: []openai.ChatMessagePart{contentText},
-				},
-				{
-					Role:         "system",
-					MultiContent: []openai.ChatMessagePart{contentSystem},
-				},
-			}
-
-			var contextGpt *gin.Context
-			contextGpt = &gin.Context{}
-
-			answer, err := chat.Chat(contextGpt, data)
-
-			if err != nil {
-				logrus.Error(err)
-			}
-
-			ctx.Updater.Handler.SendResult(
-				message.Chat.ID,
-				answer.Content,
-				models.Button{
-					Type: "show_main_menu",
-				},
-			)
-
-		}
-		_, err = ctx.Updater.Handler.RemoveMessage(message.Chat.ID, messObj.MessageID)
-		if err != nil {
-			log.Errorf("Ошибка удаления сообщения: " + err.Error())
-		}
-
-		return
 	}
+	_, err = ctx.Updater.Handler.RemoveMessage(message.Chat.ID, messObj.MessageID)
+	if err != nil {
+		log.Errorf("Ошибка удаления сообщения: " + err.Error())
+	}
+
+	return
 
 	h.Next.Handle(message, ctx)
 }
@@ -414,4 +371,14 @@ func EncodeImageToBase64(imageBytes []byte, fileMimeType string) (string, error)
 	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64Str)
 
 	return dataURL, nil
+}
+
+func getStat(message *tgbotapi.Message, ctx *MessageContext, db *database.DbComponent) (int, error) {
+	statsCommand := commands.NewStatCommand(ctx.Updater.GetBot(), ctx.Config, db)
+	count, err := statsCommand.Execute(message.From.ID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return count, nil
 }
