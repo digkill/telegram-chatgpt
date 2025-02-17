@@ -45,7 +45,7 @@ func (i *ChatGPTHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *Call
 			fmt.Println(err)
 		}
 
-		refLink := fmt.Sprintf("https://t.me/%s?start=%d", me.UserName, callbackQuery.Message.From.ID)
+		refLink := fmt.Sprintf("https://t.me/%s?start=%d", me.UserName, callbackQuery.From.ID)
 		msg := tgbotapi.NewMessage(int64(callbackQuery.Message.From.ID), fmt.Sprintf("Ваша реферальная ссылка: [%s](%s)", refLink, refLink))
 		err = ctx.Updater.Handler.SendMessageTelegram(
 			callbackQuery.Message.Chat.ID,
@@ -59,12 +59,12 @@ func (i *ChatGPTHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *Call
 
 	if callbackQuery.Data == "stats" {
 		statsCommand := commands.NewStatCommand(ctx.Updater.Handler.GetBot(), ctx.Config, db)
-		count, err := statsCommand.Execute(callbackQuery.Message.From.ID)
+		count, err := statsCommand.Execute(callbackQuery.From.ID)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		msg := tgbotapi.NewMessage(int64(callbackQuery.Message.From.ID), fmt.Sprintf("У вас %d рефералов! 🎉", count))
+		msg := tgbotapi.NewMessage(int64(callbackQuery.From.ID), fmt.Sprintf("У вас %d рефералов! 🎉", count))
 		err = ctx.Updater.Handler.SendMessageTelegram(
 			callbackQuery.Message.Chat.ID,
 			msg.Text,
