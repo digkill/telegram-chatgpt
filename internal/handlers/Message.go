@@ -160,7 +160,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 		var journal, _ = journalModel.CreateJournal(userModel.Id, prompt, count)
 
 		if journal != nil {
-			limitDayPrompt = 1
+
 			if count > limitDayPrompt {
 
 				err = ctx.Updater.SendMessageWithButtonsInRowToTelegram(
@@ -222,10 +222,6 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			ImageURL: &imgUrl,
 			Type:     openai.ChatMessagePartTypeImageURL,
 		}
-
-		fmt.Println("🔔🔔🔔🔔🔔🔔")
-		fmt.Println(imgUrl)
-		fmt.Println("🔔🔔🔔🔔🔔🔔")
 
 		promptImage := "Реши задачу с картинки, нотацию LaTeX использовать нельзя. markdown использовать нельзя"
 		if message.Text != "" {
