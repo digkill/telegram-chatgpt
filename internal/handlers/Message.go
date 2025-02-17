@@ -168,8 +168,9 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 					"Извините. Дневной лимит запросов исчерпан 😥",
 					tgbotapi.NewInlineKeyboardButtonData("Получить запросы бесплатно 🤖", "ref_menu"),
 				)
-				if err != nil {
-					logrus.Error(err)
+
+				if isHasData != false {
+					newRedis.Decrement(keyUsername)
 				}
 
 				return

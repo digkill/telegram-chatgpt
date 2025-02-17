@@ -66,6 +66,16 @@ func (component *RedisComponent) Increment(key string) int64 {
 	return val
 }
 
+func (component *RedisComponent) Decrement(key string) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_, err := component.GetClient().Decr(ctx, key).Result()
+	if err != nil {
+		log.Errorf("There is an error when make 'Decrement' Error: " + err.Error())
+	}
+
+}
+
 //func (c cmdable) Incr(ctx context.Context, key string) *IntCmd {
 //	cmd := NewIntCmd(ctx, "incr", key)
 //	_ = c(ctx, cmd)
