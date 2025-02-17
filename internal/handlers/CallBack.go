@@ -42,9 +42,7 @@ func (i *ChatGPTHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *Call
 	if callbackQuery.Data == "ref" {
 		me, err := ctx.Updater.Handler.GetBot().GetMe()
 		if err != nil {
-			fmt.Println("🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️")
 			fmt.Println(err)
-			fmt.Println("🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️🧛‍♂️")
 		}
 
 		refLink := fmt.Sprintf("https://t.me/%s?start=%d", me.UserName, callbackQuery.Message.From.ID)
@@ -67,7 +65,7 @@ func (i *ChatGPTHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *Call
 		}
 
 		msg := tgbotapi.NewMessage(int64(callbackQuery.Message.From.ID), fmt.Sprintf("У вас %d рефералов! 🎉", count))
-		ctx.Updater.Handler.SendMessageTelegram(
+		err = ctx.Updater.Handler.SendMessageTelegram(
 			callbackQuery.Message.Chat.ID,
 			msg.Text,
 		)
@@ -96,7 +94,7 @@ func (i *RefHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *CallBack
 
 		ctx.Updater.Handler.SendRefMenu(
 			callbackQuery.Message.Chat.ID,
-			fmt.Sprintf("💌 Вы можете пригласить друзей и получить дополнительно 10 запросов в день за каждого друга!\n\n- Когда ваш друг запустит бота, вы получите дополнительно 10 запросов в день;\n- Вы можете пригласить неограниченное количество друзей;\n- Ваш друг должен впервые воспользоваться ботом по вашей персональной ссылке;\n\nСсылка (скопируй ее и отправь другу):  https://t.me/%s?start=%d\n\nИли просто перешлите сообщение ниже своим друзьям:", callbackQuery.Message.Chat.ID),
+			fmt.Sprintf("💌 Вы можете пригласить друзей и получить дополнительно 10 запросов в день за каждого друга!\n\n- Когда ваш друг запустит бота, вы получите дополнительно 10 запросов в день;\n- Вы можете пригласить неограниченное количество друзей;\n- Ваш друг должен впервые воспользоваться ботом по вашей персональной ссылке;\n\nСсылка (скопируй ее и отправь другу):  https://t.me/%s?start=%d\n\nИли просто перешлите сообщение ниже своим друзьям:", callbackQuery.Message.From.ID),
 			models.Button{
 				Type: "show_main_menu",
 			},
@@ -104,7 +102,7 @@ func (i *RefHandler) Handle(callbackQuery *tgbotapi.CallbackQuery, ctx *CallBack
 		err = ctx.Updater.Handler.SendMessageTelegram(
 			callbackQuery.Message.Chat.ID,
 			fmt.Sprintf("Вы приглашены в бота [%s](https://t.me/%s?start=%d)!\nНажмите на ссылку, чтобы начать:\n🚀 [Запустить бота](https://t.me/%s?start=%d)",
-				me.UserName, me.UserName, callbackQuery.Message.Chat.ID, me.UserName, callbackQuery.Message.Chat.ID,
+				me.UserName, me.UserName, callbackQuery.Message.From.ID, me.UserName, callbackQuery.Message.From.ID,
 			),
 		)
 		if err != nil {
