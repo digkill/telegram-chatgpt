@@ -19,7 +19,7 @@ type ReportCommand struct {
 
 type UserStats struct {
 	Date         string
-	UserID       int64
+	Username     string
 	RequestCount int
 	TotalCount   int
 }
@@ -29,14 +29,16 @@ func (s *ReportCommand) Execute() ([]UserStats, error) {
 	// SQL-запрос статистики
 	query := `
 		SELECT 
-			DATE(created_at) AS date, 
-			user_id, 
-			COUNT(*) AS request_count, 
-			SUM(count) AS total_count
-		FROM journal_tg_gpt
-		GROUP BY date, user_id
-		ORDER BY date DESC, request_count DESC;
-	`
+			DATE(j.created_at) AS date, 
+			u.username, 
+			COUNT(j.id) AS request_count, 
+			(SELECT COUNT(jt.id) AS jt_total_count FROM journal_tg_gpt AS jt) AS total_count		
+		FROM journal_tg_gpt AS j
+		LEFT JOIN users_tg_gpt AS u ON u.id = j.user_id
+		GROUP BY date, j.user_id
+		ORDER BY date DESC, request_count DESC
+		LIMIT 30;
+`
 
 	rows, err := s.db.GetSqlDb().Query(query)
 	if err != nil {
@@ -48,7 +50,7 @@ func (s *ReportCommand) Execute() ([]UserStats, error) {
 	var stats []UserStats
 	for rows.Next() {
 		var stat UserStats
-		if err := rows.Scan(&stat.Date, &stat.UserID, &stat.RequestCount, &stat.TotalCount); err != nil {
+		if err := rows.Scan(&stat.Date, &stat.Username, &stat.RequestCount, &stat.TotalCount); err != nil {
 			log.Fatalf("Ошибка чтения строки: %v", err)
 		}
 		stats = append(stats, stat)

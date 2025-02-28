@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-const LIMIT_DAY_PROMPT int = 10
+const LIMIT_DAY_PROMPT int = 5
 
 type MessageContext struct {
 	Updater *UpdateTelegramData
@@ -122,13 +122,38 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			"Статистика пользователей по дням:")
 
 		for _, stat := range st {
-			fmt.Printf("Дата: %s, Пользователь: %d, Запросов: %d, Всего команд: %d\n",
-				stat.Date, stat.UserID, stat.RequestCount, stat.TotalCount)
+			fmt.Printf("Дата: %s, Пользователь: %s, Запросов: %d, Всего команд: %d\n",
+				stat.Date, stat.Username, stat.RequestCount, stat.TotalCount)
 
 			ctx.Updater.SendMessageTelegram(
 				message.Chat.ID,
-				fmt.Sprintf("Дата: %s, Пользователь: %d, Запросов: %d, Всего команд: %d\n",
-					stat.Date, stat.UserID, stat.RequestCount, stat.TotalCount))
+				fmt.Sprintf("Дата: %s, Пользователь: %s, Запросов: %d, Всего команд: %d\n",
+					stat.Date, stat.Username, stat.RequestCount, stat.TotalCount))
+
+		}
+
+		return
+
+	}
+
+	if message.Command() == "users" {
+		newReportCommand := commands.NewUsersCommand(ctx.Updater.GetBot(), ctx.Config, db)
+		st, _ := newReportCommand.Execute()
+
+		// Вывод данных
+
+		ctx.Updater.SendMessageTelegram(
+			message.Chat.ID,
+			"Статистика пользователей:")
+
+		for _, stat := range st {
+			fmt.Printf("Всего пользователей: %d\n",
+				stat.TotalCount)
+
+			ctx.Updater.SendMessageTelegram(
+				message.Chat.ID,
+				fmt.Sprintf("Всего пользователей: %d\n",
+					stat.TotalCount))
 
 		}
 
