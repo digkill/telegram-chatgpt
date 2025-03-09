@@ -244,7 +244,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 	images := message.Photo
 
-	var systemPrompt = "ответы пиши только на русском языке. Начинаем новую тему, без учета предыдущих разговоров."
+	var systemPrompt = "ответы пиши только на русском языке. Используй символы unicode, не используй нотацию LaTex, Tex. Начинаем новую тему, без учета предыдущих разговоров."
 
 	if images != nil && len(*images) > 0 {
 		photoId := (*images)[1].FileID

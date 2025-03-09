@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/ConnectAI-E/Feishu-EX-ChatGPT v0.0.0-20230529123028-167d493b141d
-	github.com/digkill/latex2unicode v1.0.1
+	github.com/digkill/latex2unicode v1.0.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
