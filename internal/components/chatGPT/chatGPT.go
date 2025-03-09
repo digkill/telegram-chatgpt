@@ -3,10 +3,10 @@ package chatGPT
 import (
 	"context"
 	"errors"
+	"github.com/digkill/latex2unicode"
+	"github.com/sashabaranov/go-openai"
 	"gitlab.com/mediarise/appleclassbot/internal/config"
 	"gitlab.com/mediarise/appleclassbot/internal/domains"
-
-	"github.com/sashabaranov/go-openai"
 )
 
 type ChatGPTComponent struct {
@@ -38,8 +38,17 @@ func (c ChatGPTComponent) GetChat() *openai.Client {
 func (c ChatGPTComponent) Chat(ctx context.Context, messages []openai.ChatCompletionMessage) (*domains.Answer, error) {
 
 	//chatGPTMessages := c.makeChatGPTMessage(messages)
+	response, err := c.send(ctx, messages)
+	if err != nil {
+		return nil, err
+	}
+	responseLatex := domains.Answer{
+		Role:    response.Role,
+		Content: latex2unicode.ConvertLatexToUnicode(response.Content),
+	}
 
-	return c.send(ctx, messages)
+	return &responseLatex, nil
+	// return response, nil
 }
 
 func (c ChatGPTComponent) makeChatGPTMessage(messages []domains.Message) []openai.ChatCompletionMessage {

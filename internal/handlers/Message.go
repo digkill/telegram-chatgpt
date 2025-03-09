@@ -244,7 +244,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 	images := message.Photo
 
-	var systemPrompt = "нотацию LaTeX использовать нельзя. markdown использовать нельзя, ответы пиши только на русском языке. Начинаем новую тему, без учета предыдущих разговоров."
+	var systemPrompt = "ответы пиши только на русском языке. Начинаем новую тему, без учета предыдущих разговоров."
 
 	if images != nil && len(*images) > 0 {
 		photoId := (*images)[1].FileID
@@ -274,7 +274,7 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			Type:     openai.ChatMessagePartTypeImageURL,
 		}
 
-		promptImage := "Реши задачу с картинки, нотацию LaTeX использовать нельзя. markdown использовать нельзя"
+		promptImage := "Реши задачу с картинки"
 		if message.Text != "" {
 			promptImage = message.Text
 		}
