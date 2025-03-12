@@ -147,11 +147,11 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 			"Статистика привлеченных рефералов:")
 
 		for _, referral := range rs {
-			fmt.Printf("Реферал: %d, Пользователь: %d\n", referral.ReferrerID, referral.ReferrerCount)
+			fmt.Printf("Пользователь: %d, привлек рефералов: %d\n", referral.ReferrerID, referral.ReferrerCount)
 
 			ctx.Updater.SendMessageTelegram(
 				message.Chat.ID,
-				fmt.Sprintf("Реферал: %d, Пользователь: %d\n", referral.ReferrerID, referral.ReferrerCount))
+				fmt.Sprintf("Пользователь: %d, привлек рефералов: %d\n", referral.ReferrerID, referral.ReferrerCount))
 		}
 
 		return
