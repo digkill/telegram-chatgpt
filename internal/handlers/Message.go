@@ -136,6 +136,28 @@ func (h *CommandMenuHandler) Handle(message *tgbotapi.Message, ctx *MessageConte
 
 	}
 
+	if message.Command() == "referrals" {
+		newReferralsCommand := commands.NewReferralsCommand(ctx.Updater.GetBot(), ctx.Config, db)
+		rs, _ := newReferralsCommand.Execute()
+
+		// Вывод данных
+
+		ctx.Updater.SendMessageTelegram(
+			message.Chat.ID,
+			"Статистика привлеченных рефералов:")
+
+		for _, referral := range rs {
+			fmt.Printf("Реферал: %d, Пользователь: %d\n", referral.ReferrerID, referral.ReferrerCount)
+
+			ctx.Updater.SendMessageTelegram(
+				message.Chat.ID,
+				fmt.Sprintf("Реферал: %d, Пользователь: %d\n", referral.ReferrerID, referral.ReferrerCount))
+		}
+
+		return
+
+	}
+
 	if message.Command() == "users" {
 		newReportCommand := commands.NewUsersCommand(ctx.Updater.GetBot(), ctx.Config, db)
 		st, _ := newReportCommand.Execute()
