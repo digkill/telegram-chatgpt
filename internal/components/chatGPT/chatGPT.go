@@ -3,13 +3,10 @@ package chatGPT
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/digkill/latex2unicode"
 	"github.com/sashabaranov/go-openai"
 	"gitlab.com/mediarise/appleclassbot/internal/config"
 	"gitlab.com/mediarise/appleclassbot/internal/domains"
-	"net/http"
-	"net/url"
 )
 
 type ChatGPTComponent struct {
@@ -21,18 +18,20 @@ func (component *ChatGPTComponent) Init() bool {
 	var openAIToken = component.config.Token
 
 	// URL HTTP-прокси
-	proxyURL, err := url.Parse("http://104.17.214.67:80")
-	if err != nil {
-		fmt.Println("Ошибка парсинга прокси:", err)
-	}
+	//	proxyURL, err := url.Parse("https://168.228.44.66:999")
+	//	if err != nil {
+	//		fmt.Println("😡😡😡😡😡")
+	//		fmt.Println("Ошибка парсинга прокси:", err)
+	//		fmt.Println("😡😡😡😡😡")
+	//	}
 
-	transport := &http.Transport{
-		Proxy: http.ProxyURL(proxyURL),
-	}
-	client := &http.Client{Transport: transport}
+	//	transport := &http.Transport{
+	//		Proxy: http.ProxyURL(proxyURL),
+	//	}
+	//	client := &http.Client{Transport: transport}
 
 	clientConfig := openai.DefaultConfig(openAIToken)
-	clientConfig.HTTPClient = client
+	//	clientConfig.HTTPClient = client
 	component.client = openai.NewClientWithConfig(clientConfig)
 
 	return true

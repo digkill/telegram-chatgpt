@@ -3,6 +3,7 @@ package chatgpt
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/sashabaranov/go-openai"
 	"gitlab.com/mediarise/appleclassbot/internal/domains"
 )
@@ -68,6 +69,11 @@ func (c ChatGPT) send(ctx context.Context, chatGPTMessages []openai.ChatCompleti
 			// MaxTokens: 100,
 			// Store: false,
 		})
+
+	fmt.Println("😋😋😋😋😋")
+	fmt.Println(resp)
+	fmt.Println("😋😋😋😋😋")
+
 	if err != nil {
 		return nil, err
 	}
